@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GLP-1 Journey</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #F2F2F7; /* Apple System Grey */
+            --card-bg: rgba(255, 255, 255, 0.8);
+            --text-primary: #1C1C1E;
+            --text-secondary: #8E8E93;
+            --accent-blue: #007AFF;
+            --accent-green: #34C759;
+            --accent-orange: #FF9500;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Modal for First Time Setup */
+        #setupModal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        /* Main Container */
+        .container {
+            width: 100%;
+            max-width: 600px;
+            padding-bottom: 50px;
+        }
+
+        h1 {
+            font-weight: 700;
+            font-size: 28px;
+            margin-bottom: 5px;
+            text-align: left;
+            margin-left: 5px;
+        }
+        .subtitle {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 25px;
+            margin-left: 5px;
+            text-align: left;
+        }
+
+        /* Apple Style Cards */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 18px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        .card-header {
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Stats Grid */
+        .stats-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .big-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .unit { font-size: 14px; color: var(--text-secondary); font-weight: 400; }
+        .bmi-tag { 
+            font-size: 12px; font-weight: 600; 
+            padding: 4px 8px; border-radius: 8px; 
+            margin-top: 5px; display: inline-block;
+        }
+        .bmi-normal { background: #d1fae5; color: #065f46; }
+        .bmi-warn { background: #fee2e2; color: #991b1b; }
+
+        /* Inputs */
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #E5E5EA;
+            border-radius: 12px;
+            background: white;
+            box-sizing: border-box;
+            outline: none;
+            transition: border 0.2s;
+            font-family: inherit;
+        }
+        input:focus { border-color: var(--accent-blue); }
+
+        /* Buttons */
+        .btn-primary {
+            background-color: var(--accent-blue);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+        }
+        .btn-primary:active { opacity: 0.8; transform: scale(0.99); }
+
+        /* Chart */
+        .chart-container {
+            position: relative;
+            height: 320px;
+            width: 100%;
+        }
+
+        /* Dose Schedule Highlight */
+        .dose-banner {
+            background: white;
+            border-left: 5px solid var(--accent-blue);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+        .dose-info h3 { margin: 0; font-size: 16px; }
+        .dose-info p { margin: 2px 0 0 0; font-size: 13px; color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+
+    <div id="setupModal" style="display:none;">
+        <div class="modal-content">
+            <h2>Welcome</h2>
+            <p style="color:#8E8E93; font-size:14px;">Let's set up your profile to track your journey properly.</p>
+            
+            <div class="input-group">
+                <label>First Dose Date</label>
+                <input type="date" id="setupDate">
+            </div>
+            <div class="input-group">
+                <label>Height (cm)</label>
+                <input type="number" id="setupHeight" placeholder="e.g. 175">
+            </div>
+            <button class="btn-primary" onclick="saveProfile()">Start Journey</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>My Journey</h1>
+        <div class="subtitle" id="dateDisplay">Loading date...</div>
+
+        <div class="dose-banner">
+            <div class="dose-info">
+                <h3 id="nextDoseTitle">Next Dose</h3>
+                <p id="nextDoseDate">Calculating...</p>
+            </div>
+            <div style="text-align:right;">
+                <span style="font-size:24px;">💉</span>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">Current Weight</div>
+                <div class="big-number" id="currentWeightDisplay">-- <span class="unit">kg</span></div>
+            </div>
+            <div class="card" style="margin-bottom:0;">
+                <div class="card-header">Current BMI</div>
+                <div class="big-number" id="bmiDisplay">--</div>
+                <div id="bmiTag" class="bmi-tag" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <span>Progress & Intake</span>
+                <span style="font-size:10px; opacity:0.6;">Start date marked</span>
+            </div>
+            <div class="chart-container">
+                <canvas id="mainChart"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Today's Log</div>
+            
+            <div class="input-group">
+                <label>Weight (kg)</label>
+                <input type="number" step="0.1" id="logWeight" placeholder="0.0">
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+                <div class="input-group">
+                    <label>Calories (KCal)</label>
+                    <input type="number" id="logCals" placeholder="0">
+                </div>
+                <div class="input-group">
+                    <label>Water (Liters)</label>
+                    <input type="number" step="0.1" id="logWater" placeholder="0.0">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Date of Log</label>
+                <input type="date" id="logDate">
+            </div>
+
+            <button class="btn-primary" onclick="saveLog()">Save Entry</button>
+        </div>
+    </div>
+
+    <script>
+        // --- CONSTANTS & CONFIG ---
+        const CHART_COLORS = {
+            weight: '#007AFF', // System Blue
+            calories: 'rgba(255, 149, 0, 0.4)' // System Orange (transparent)
+        };
+
+        // --- STATE MANAGEMENT ---
+        let profile = JSON.parse(localStorage.getItem('glp1_profile'));
+        let logs = JSON.parse(localStorage.getItem('glp1_logs')) || [];
+
+        // --- INIT ---
+        window.onload = function() {
+            // Set today's date in header
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('dateDisplay').innerText = new Date().toLocaleDateString('en-GB', options);
+            
+            // Set default log date to today
+            document.getElementById('logDate').valueAsDate = new Date();
+
+            // Check if profile exists
+            if (!profile) {
+                document.getElementById('setupModal').style.display = 'flex';
+                // Default setup date to today
+                document.getElementById('setupDate').valueAsDate = new Date();
+            } else {
+                initApp();
+            }
+        };
+
+        function saveProfile() {
+            const date = document.getElementById('setupDate').value;
+            const height = document.getElementById('setupHeight').value;
+
+            if (date && height) {
+                profile = { doseStart: date, height: parseFloat(height) };
+                localStorage.setItem('glp1_profile', JSON.stringify(profile));
+                document.getElementById('setupModal').style.display = 'none';
+                initApp();
+            } else {
+                alert("Please fill in all fields.");
+            }
+        }
+
+        function initApp() {
+            updateDoseSchedule();
+            updateStats();
+            renderChart();
+        }
+
+        // --- LOGIC: DOSE SCHEDULE ---
+        function updateDoseSchedule() {
+            const start = new Date(profile.doseStart);
+            const today = new Date();
+            
+            // Calculate days passed
+            const diffTime = Math.abs(today - start);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            
+            // Calculate next dose
+            let daysUntilNext = 7 - (diffDays % 7);
+            if (daysUntilNext === 7) daysUntilNext = 0; // Due today
+
+            const nextDate = new Date();
+            nextDate.setDate(today.getDate() + daysUntilNext);
+
+            const ukDate = nextDate.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+            
+            document.getElementById('nextDoseDate').innerText = daysUntilNext === 0 ? "Due TODAY" : ukDate;
+            if(daysUntilNext === 0) {
+                document.querySelector('.dose-banner').style.borderLeftColor = '#FF3B30'; // Red alert
+            }
+        }
+
+        // --- LOGIC: STATS & BMI ---
+        function updateStats() {
+            if (logs.length === 0) return;
+
+            // Get latest log with a weight entry
+            const sortedLogs = [...logs].sort((a,b) => new Date(b.date) - new Date(a.date));
+            const latest = sortedLogs.find(l => l.weight > 0);
+
+            if (latest) {
+                document.getElementById('currentWeightDisplay').innerHTML = `${latest.weight} <span class="unit">kg</span>`;
+                
+                // BMI Calc
+                const heightM = profile.height / 100;
+                const bmi = (latest.weight / (heightM * heightM)).toFixed(1);
+                document.getElementById('bmiDisplay').innerText = bmi;
+
+                // BMI Style
+                const tag = document.getElementById('bmiTag');
+                tag.style.display = 'inline-block';
+                tag.innerText = bmi < 25 ? "Normal Range" : (bmi < 30 ? "Overweight" : "Obese");
+                tag.className = 'bmi-tag ' + (bmi < 25 ? 'bmi-normal' : 'bmi-warn');
+            }
+        }
+
+        // --- LOGIC: LOGGING ---
+        function saveLog() {
+            const date = document.getElementById('logDate').value;
+            const weight = parseFloat(document.getElementById('logWeight').value);
+            const cals = parseFloat(document.getElementById('logCals').value);
+            const water = parseFloat(document.getElementById('logWater').value);
+
+            if (!date) return alert("Date is required");
+
+            // Check if log exists for this date, if so update it
+            const existingIndex = logs.findIndex(l => l.date === date);
+            
+            const entry = {
+                date: date,
+                weight: weight || (existingIndex > -1 ? logs[existingIndex].weight : null),
+                cals: cals || (existingIndex > -1 ? logs[existingIndex].cals : null),
+                water: water || (existingIndex > -1 ? logs[existingIndex].water : null)
+            };
+
+            if (existingIndex > -1) {
+                logs[existingIndex] = entry;
+            } else {
+                logs.push(entry);
+            }
+
+            localStorage.setItem('glp1_logs', JSON.stringify(logs));
+            
+            alert("Log Saved!");
+            
+            // Clear inputs but keep date
+            document.getElementById('logWeight').value = '';
+            document.getElementById('logCals').value = '';
+            document.getElementById('logWater').value = '';
+            
+            initApp(); // Refresh UI
+        }
+
+        // --- LOGIC: CHART ---
+        let myChart = null;
+
+        function renderChart() {
+            // Sort logs by date ascending
+            const data = [...logs].sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            // Prepare Data Arrays
+            const dates = data.map(l => l.date);
+            const weights = data.map(l => l.weight);
+            const calories = data.map(l => l.cals);
+
+            const ctx = document.getElementById('mainChart').getContext('2d');
+
+            if (myChart) myChart.destroy();
+
+            myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [
+                        {
+                            label: 'Weight (kg)',
+                            data: weights,
+                            borderColor: CHART_COLORS.weight,
+                            backgroundColor: CHART_COLORS.weight,
+                            yAxisID: 'y',
+                            tension: 0.3,
+                            pointRadius: 4
+                        },
+                        {
+                            label: 'Calories',
+                            data: calories,
+                            type: 'bar',
+                            backgroundColor: CHART_COLORS.calories,
+                            yAxisID: 'y1',
+                            barThickness: 10,
+                            borderRadius: 4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    // Convert YYYY-MM-DD to UK format for Tooltip
+                                    const d = new Date(context[0].label);
+                                    return d.toLocaleDateString('en-GB');
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'dd/MM/yyyy',
+                                displayFormats: { day: 'dd/MM' }
+                            },
+                            grid: { display: false }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Kg' },
+                            grid: { borderDash: [5, 5] }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'KCal' },
+                            grid: { display: false },
+                            min: 0
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
