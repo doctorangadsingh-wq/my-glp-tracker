@@ -56,8 +56,8 @@
 <body>
 
     <div id="setupModal">
-        <h1>Initial Setup</h1>
-        <label>First Dose Date</label>
+        <h1>Setup Journey</h1>
+        <label>First Dose Date (Past or Future)</label>
         <input type="date" id="setupDate">
         <label>Height (cm)</label>
         <input type="number" id="setupHeight" placeholder="175">
@@ -67,7 +67,7 @@
     <div class="header">My Journey</div>
 
     <div class="card dose-active">
-        <div class="label">Next Shot Due</div>
+        <div class="label" id="doseLabel">Next Shot Due</div>
         <div id="doseCountdown" class="stat-val">Calculating...</div>
         <div id="doseDateDisplay" style="font-size: 14px; color: #8E8E93;"></div>
     </div>
@@ -93,9 +93,9 @@
         <div class="label">New Entry</div>
         <input type="number" step="0.1" id="inWeight" placeholder="Weight (kg)">
         <input type="number" id="inCals" placeholder="Calories (Kcal)">
-        <input type="number" step="0.1" id="inWater" placeholder="Water (Liters)">
         <input type="date" id="inDate">
         <button onclick="saveEntry()">Save Entry</button>
+        <button onclick="clearAllData()" style="background:#FF3B30; margin-top:20px; font-size:12px; padding:10px;">Reset App Data</button>
     </div>
 
     <script>
@@ -127,7 +127,6 @@
         }
 
         function updateDose() {
-            // Logic: Calculate exactly based on days from start date
             const start = new Date(profile.start);
             start.setHours(0,0,0,0);
             const today = new Date();
@@ -136,9 +135,18 @@
             const diffMs = today - start;
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             
-            // Weekly logic: Next dose is at the next 7-day milestone
+            // Handle Future Date
+            if (diffDays < 0) {
+                const daysUntilStart = Math.abs(diffDays);
+                document.getElementById('doseLabel').innerText = "Journey Starts In";
+                document.getElementById('doseCountdown').innerText = `${daysUntilStart} days`;
+                document.getElementById('doseDateDisplay').innerText = `First dose: ${start.toLocaleDateString('en-GB')}`;
+                return;
+            }
+
+            // Normal Weekly Logic
             let daysRemaining = 7 - (diffDays % 7);
-            if (daysRemaining === 7 && diffDays >= 0) daysRemaining = 0; // It's today
+            if (daysRemaining === 7) daysRemaining = 0;
 
             const nextDoseDate = new Date(today);
             nextDoseDate.setDate(today.getDate() + daysRemaining);
@@ -146,6 +154,7 @@
             const countdownText = daysRemaining === 0 ? "DUE TODAY" : 
                                  (daysRemaining === 1 ? "1 day left" : `${daysRemaining} days left`);
             
+            document.getElementById('doseLabel').innerText = "Next Shot Due";
             document.getElementById('doseCountdown').innerText = countdownText;
             document.getElementById('doseDateDisplay').innerText = nextDoseDate.toLocaleDateString('en-GB');
         }
@@ -172,14 +181,21 @@
             
             logs.push({ date: d, weight: w || 0, cals: c || 0 });
             localStorage.setItem('gp_logs', JSON.stringify(logs));
-            alert("Saved");
             location.reload();
+        }
+
+        function clearAllData() {
+            if(confirm("Are you sure? This will delete all your weight history.")) {
+                localStorage.clear();
+                location.reload();
+            }
         }
 
         function renderChart() {
             const ctx = document.getElementById('mainChart').getContext('2d');
             const data = [...logs].sort((a,b) => new Date(a.date) - new Date(b.date));
-            
+            if (data.length === 0) return;
+
             if (chart) chart.destroy();
             chart = new Chart(ctx, {
                 type: 'line',
