@@ -1,18 +1,9 @@
-Here is the complete, single-file code for your web app.
-I have designed this to run entirely in your browser using Local Storage. The first time you open it, it will greet you with a Setup Screen to get your Height and Start Weight. After that, it unlocks the full dashboard.
-How to use this:
- * Copy the code below.
- * Create a new file on your computer named index.html.
- * Paste the code into that file and save.
- * Upload this index.html to your GitHub Repository.
- * Turn on "GitHub Pages" in your repository settings.
-The Code
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health & GLP-1 Tracker</title>
+    <title>Health OS v2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -24,7 +15,7 @@ The Code
             --accent-green: #34C759;
             --accent-red: #FF3B30;
             --accent-orange: #FF9500;
-            --accent-purple: #AF52DE;
+            --accent-grey: #8E8E93;
             --radius: 20px;
             --shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
@@ -65,8 +56,8 @@ The Code
             border-radius: 12px;
             text-align: center;
         }
-        .stat-value { font-size: 24px; font-weight: 800; display: block; margin-top: 5px; }
-        .stat-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 20px; font-weight: 800; display: block; margin-top: 5px; }
+        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 
         .btn {
             background: var(--accent-blue);
@@ -155,6 +146,15 @@ The Code
         .velocity-card { background: linear-gradient(135deg, #007AFF, #5856D6); color: white; }
         .velocity-card .stat-label { color: rgba(255,255,255,0.7); }
         .velocity-card .stat-value { color: white; }
+        .motivation-text {
+            font-size: 14px; 
+            color: rgba(255,255,255,0.9); 
+            text-align: center; 
+            margin-top: 15px; 
+            padding-top: 15px; 
+            border-top: 1px solid rgba(255,255,255,0.2);
+            line-height: 1.4;
+        }
 
         /* GLP-1 Badge */
         .dose-badge {
@@ -168,6 +168,7 @@ The Code
         }
         .dose-2-5 { background-color: var(--accent-green); }
         .dose-5 { background-color: var(--accent-red); }
+        .dose-none { background-color: var(--accent-grey); }
 
     </style>
 </head>
@@ -176,13 +177,27 @@ The Code
     <div id="setup-modal" style="display:none;">
         <div class="setup-content">
             <h2>Welcome</h2>
-            <p style="color:var(--text-secondary); margin-bottom: 20px;">Let's get your baseline set up.</p>
+            <p style="color:var(--text-secondary); margin-bottom: 20px;">We need accurate stats for the calorie engine.</p>
             
             <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Your Height (cm)</label>
             <input type="number" id="setup-height" placeholder="e.g. 175">
             
             <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Starting Weight (kg)</label>
             <input type="number" id="setup-weight" placeholder="e.g. 90">
+
+            <div class="grid-2">
+                <div>
+                    <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Age</label>
+                    <input type="number" id="setup-age" placeholder="30">
+                </div>
+                <div>
+                    <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Gender</label>
+                    <select id="setup-gender">
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                    </select>
+                </div>
+            </div>
 
             <button class="btn" onclick="saveSetup()">Start Tracking</button>
         </div>
@@ -203,35 +218,39 @@ The Code
         <div class="card velocity-card">
             <div class="grid-3">
                 <div class="stat-box" style="background:rgba(255,255,255,0.1);">
+                    <span class="stat-label">Daily BMR</span>
+                    <span class="stat-value" id="bmr-value">--</span>
+                </div>
+                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
+                    <span class="stat-label">Today's Deficit</span>
+                    <span class="stat-value" id="today-deficit">--</span>
+                </div>
+                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
                     <span class="stat-label">Net Loss</span>
                     <span class="stat-value" id="net-loss">-- kg</span>
                 </div>
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">Velocity (7d)</span>
-                    <span class="stat-value" id="loss-velocity">--</span>
-                </div>
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">In 4 Weeks</span>
-                    <span class="stat-value" id="prediction-weight">--</span>
-                </div>
+            </div>
+            <div class="motivation-text" id="prediction-text">
+                Log today's calories to see your 30-day potential.
             </div>
         </div>
 
         <div class="card">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <h3>GLP-1 Status</h3>
-                <span id="next-dose-date" style="font-weight:600; color:var(--accent-blue);">Next Dose: --</span>
+                <span id="next-dose-date" style="font-weight:600; color:var(--accent-blue);">--</span>
             </div>
             <div style="margin-top: 15px;" class="grid-2">
                 <div>
-                    <label class="stat-label">Last Dose Date</label>
+                    <label class="stat-label">Date</label>
                     <input type="date" id="glp-date">
                 </div>
                 <div>
                     <label class="stat-label">Dosage</label>
                     <div class="toggle-group" id="glp-toggle">
-                        <div class="toggle-option active" onclick="setDose(2.5, this)">2.5mg</div>
-                        <div class="toggle-option" onclick="setDose(5, this)">5mg</div>
+                        <div class="toggle-option" onclick="setDose(0, this)">None</div>
+                        <div class="toggle-option active" onclick="setDose(2.5, this)">2.5</div>
+                        <div class="toggle-option" onclick="setDose(5, this)">5.0</div>
                     </div>
                 </div>
             </div>
@@ -239,7 +258,7 @@ The Code
 
         <div class="card">
             <h3>Progress Overview</h3>
-            <p style="font-size:12px; color:var(--text-secondary);">Weight (Lines) vs Calories (Bars)</p>
+            <p style="font-size:12px; color:var(--text-secondary);">Weight (Color coded by dose) vs Calories</p>
             <div class="chart-container">
                 <canvas id="mainChart"></canvas>
             </div>
@@ -261,7 +280,7 @@ The Code
                     <input type="number" id="daily-protein">
                 </div>
                 <div style="display:flex; align-items:center; justify-content: space-between; padding-top:20px;">
-                    <label class="stat-label">Exercise?</label>
+                    <label class="stat-label">Exercise? (+200kcal)</label>
                     <input type="checkbox" id="daily-exercise" style="width:25px; height:25px; margin:0;">
                 </div>
             </div>
@@ -285,8 +304,7 @@ The Code
                     <tr style="border-bottom: 1px solid #E5E5EA; color:var(--text-secondary);">
                         <th style="padding:10px 0;">Date</th>
                         <th>Wt</th>
-                        <th>Prot.</th>
-                        <th>Ex.</th>
+                        <th>Cal.</th>
                         <th>Dose</th>
                     </tr>
                 </thead>
@@ -303,16 +321,18 @@ The Code
         settings: {
             height: null,
             startWeight: null,
+            age: 30,
+            gender: 'male',
             startDate: null
         },
-        entries: [] // Array of {date, weight, calories, protein, exercise, chest, waist, glpDose}
+        entries: [] 
     };
 
     let currentDoseSelection = 2.5;
 
     // --- INITIALIZATION ---
     window.onload = function() {
-        const storedData = localStorage.getItem('healthApp_v1');
+        const storedData = localStorage.getItem('healthApp_v2');
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
         
         // Set default date for GLP input
@@ -320,6 +340,8 @@ The Code
 
         if (storedData) {
             appData = JSON.parse(storedData);
+            // Migration check for old data (if upgrading from v1 to v2)
+            if(!appData.settings.age) appData.settings.age = 30;
             renderDashboard();
         } else {
             document.getElementById('setup-modal').style.display = 'flex';
@@ -330,11 +352,15 @@ The Code
     function saveSetup() {
         const h = parseFloat(document.getElementById('setup-height').value);
         const w = parseFloat(document.getElementById('setup-weight').value);
+        const a = parseFloat(document.getElementById('setup-age').value);
+        const g = document.getElementById('setup-gender').value;
         
-        if (!h || !w) return alert("Please enter both fields");
+        if (!h || !w || !a) return alert("Please fill all fields");
 
         appData.settings.height = h;
         appData.settings.startWeight = w;
+        appData.settings.age = a;
+        appData.settings.gender = g;
         appData.settings.startDate = new Date().toISOString().split('T')[0];
         
         saveData();
@@ -359,12 +385,14 @@ The Code
         const chest = parseFloat(document.getElementById('daily-chest').value) || null;
         const waist = parseFloat(document.getElementById('daily-waist').value) || null;
         
-        // GLP-1 Logic check: Did they update the dose date?
         const glpDateInput = document.getElementById('glp-date').value;
-        // Simple logic: We store the dose status for the day. 
-        // We will assume if they log today, they are on the selected dose.
+
+        // Validation
+        if (!weight || !calories) {
+            alert("Please enter at least Weight and Calories.");
+            return;
+        }
         
-        // Remove existing entry for today if exists to allow update
         appData.entries = appData.entries.filter(e => e.date !== date);
 
         const newEntry = {
@@ -375,12 +403,11 @@ The Code
             exercise,
             chest,
             waist,
-            glpDose: currentDoseSelection, // Stores which dose is currently active
-            glpInjectionDate: glpDateInput // Stores the reference date for calculation
+            glpDose: currentDoseSelection, 
+            glpInjectionDate: glpDateInput 
         };
 
         appData.entries.push(newEntry);
-        // Sort by date
         appData.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         saveData();
@@ -394,100 +421,105 @@ The Code
     }
 
     function saveData() {
-        localStorage.setItem('healthApp_v1', JSON.stringify(appData));
+        localStorage.setItem('healthApp_v2', JSON.stringify(appData));
     }
 
     // --- CALCULATIONS & RENDERING ---
     function renderDashboard() {
         const entries = appData.entries;
-        if (entries.length === 0) return;
+        
+        // 1. GLP Timer Logic (Runs even without entries)
+        const glpDateVal = document.getElementById('glp-date').value;
+        if (glpDateVal) {
+            const inputDate = new Date(glpDateVal);
+            inputDate.setHours(0,0,0,0);
+            const today = new Date();
+            today.setHours(0,0,0,0);
 
+            const diffTime = inputDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            let msg = "";
+            if (diffDays > 0) {
+                // Future date
+                msg = `Next Dose: In ${diffDays} days`;
+            } else {
+                // Past or Today
+                // Logic: If injection was in past, next one is Injection + 7
+                const nextDose = new Date(inputDate);
+                nextDose.setDate(inputDate.getDate() + 7);
+                const daysUntilNext = Math.ceil((nextDose - today) / (1000 * 60 * 60 * 24));
+                
+                if (daysUntilNext === 0) msg = "Dose Due Today!";
+                else if (daysUntilNext < 0) msg = `Overdue by ${Math.abs(daysUntilNext)} days`;
+                else msg = `Next Dose: In ${daysUntilNext} days`;
+            }
+            document.getElementById('next-dose-date').innerText = msg;
+        }
+
+        if (entries.length === 0) return;
         const latest = entries[entries.length - 1];
 
-        // 1. BMI
+        // 2. BMI
         const heightM = appData.settings.height / 100;
         const bmi = (latest.weight / (heightM * heightM)).toFixed(1);
         document.getElementById('bmi-pill').innerText = `BMI: ${bmi}`;
 
-        // 2. Net Loss
+        // 3. Net Loss
         const loss = (appData.settings.startWeight - latest.weight).toFixed(1);
         document.getElementById('net-loss').innerText = `-${loss} kg`;
 
-        // 3. Velocity & Prediction
-        // Look back 7-14 days
-        let velocity = 0;
-        if (entries.length > 1) {
-            // Find entry roughly 7 days ago, or the first entry if less than 7 days
-            const daysAgo = 7;
-            const now = new Date(latest.date);
-            
-            // Get data points
-            const weights = entries.map(e => ({ t: new Date(e.date).getTime(), y: e.weight }));
-            
-            // Simple rate: (Start Weight Window - Current Weight) / Days
-            // Let's use the very first entry if less than 7 days, or entry 7 days ago
-            let refEntry = entries[0];
-            for (let i = entries.length - 1; i >= 0; i--) {
-                const d = new Date(entries[i].date);
-                const diffTime = Math.abs(now - d);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                if (diffDays >= 7) {
-                    refEntry = entries[i];
-                    break;
-                }
-            }
+        // 4. METABOLIC ENGINE (BMR & Deficit)
+        // Mifflin-St Jeor Equation
+        // Men: 10W + 6.25H - 5A + 5
+        // Women: 10W + 6.25H - 5A - 161
+        let bmr = (10 * latest.weight) + (6.25 * appData.settings.height) - (5 * appData.settings.age);
+        if (appData.settings.gender === 'male') bmr += 5;
+        else bmr -= 161;
 
-            const diffDays = (now - new Date(refEntry.date)) / (1000 * 60 * 60 * 24);
-            if(diffDays > 0) {
-                const diffWeight = refEntry.weight - latest.weight;
-                velocity = (diffWeight / diffDays); // kg per day loss
-            }
-        }
+        let maintenance = bmr * 1.2; // Sedentary baseline
+        if (latest.exercise) maintenance += 200; // User rule: Add 200 if exercise
 
-        const velText = velocity > 0 ? `-${(velocity * 7).toFixed(2)} kg/wk` : "Calculating...";
-        document.getElementById('loss-velocity').innerText = velText;
-
-        // Prediction: Current - (Velocity * 28)
-        if (velocity > 0) {
-            const predicted = (latest.weight - (velocity * 28)).toFixed(1);
-            document.getElementById('prediction-weight').innerText = `${predicted} kg`;
+        const deficit = maintenance - latest.calories;
+        
+        document.getElementById('bmr-value').innerText = Math.round(maintenance);
+        
+        const defEl = document.getElementById('today-deficit');
+        if(deficit > 0) {
+            defEl.innerText = `-${Math.round(deficit)}`;
+            defEl.style.color = '#34C759'; // Green
         } else {
-            document.getElementById('prediction-weight').innerText = "--";
+            defEl.innerText = `+${Math.round(Math.abs(deficit))}`;
+            defEl.style.color = '#FF3B30'; // Red
         }
 
-        // 4. GLP Next Dose
-        if (latest.glpInjectionDate) {
-            const lastInj = new Date(latest.glpInjectionDate);
-            const nextInj = new Date(lastInj);
-            nextInj.setDate(lastInj.getDate() + 7);
-            
-            const daysUntil = Math.ceil((nextInj - new Date()) / (1000 * 60 * 60 * 24));
-            
-            let doseMsg = `Due in ${daysUntil} days`;
-            if (daysUntil === 0) doseMsg = "Due Today!";
-            if (daysUntil < 0) doseMsg = `Overdue by ${Math.abs(daysUntil)} days`;
-            
-            document.getElementById('next-dose-date').innerText = doseMsg;
-            // Update the toggle UI to match latest entry
-            setDose(latest.glpDose, document.querySelectorAll('.toggle-option')[latest.glpDose === 2.5 ? 0 : 1]);
-            document.getElementById('glp-date').value = latest.glpInjectionDate;
+        // 5. Prediction (30 Days)
+        // 7700kcal = 1kg fat
+        const predictedLoss = (deficit * 30) / 7700;
+        const projectedWeight = (latest.weight - predictedLoss).toFixed(1);
+        
+        let motivationHTML = "";
+        if (deficit > 0) {
+            motivationHTML = `If every day was like today, you'd lose <strong>${predictedLoss.toFixed(1)} kg</strong> in 30 days.<br>Projected Weight: <strong>${projectedWeight} kg</strong>`;
+        } else {
+            motivationHTML = `You are in a surplus today. To lose weight, aim for calories below ${Math.round(maintenance)}.`;
         }
+        document.getElementById('prediction-text').innerHTML = motivationHTML;
 
-        // 5. Update History Table
+
+        // 6. Update History Table
         const tbody = document.getElementById('history-body');
         tbody.innerHTML = '';
-        // Show last 5 entries reversed
         [...entries].reverse().slice(0, 5).forEach(e => {
-            const proteinDisplay = e.protein > 200 ? '<span class="tick">✔</span>' : `${e.protein}g`;
-            const exDisplay = e.exercise ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>';
-            const doseClass = e.glpDose === 2.5 ? 'dose-2-5' : 'dose-5';
+            let doseBadge = 'dose-none';
+            if (e.glpDose == 2.5) doseBadge = 'dose-2-5';
+            if (e.glpDose == 5.0) doseBadge = 'dose-5';
             
             const row = `<tr>
                 <td style="padding:10px 0; color:var(--text-secondary);">${e.date.slice(5)}</td>
                 <td style="font-weight:600;">${e.weight}</td>
-                <td>${proteinDisplay}</td>
-                <td>${exDisplay}</td>
-                <td><span class="dose-badge ${doseClass}">${e.glpDose}mg</span></td>
+                <td>${e.calories}</td>
+                <td><span class="dose-badge ${doseBadge}">${e.glpDose > 0 ? e.glpDose + 'mg' : 'Off'}</span></td>
             </tr>`;
             tbody.innerHTML += row;
         });
@@ -500,13 +532,16 @@ The Code
 
     function updateChart(data) {
         const ctx = document.getElementById('mainChart').getContext('2d');
-        const labels = data.map(e => e.date.slice(5)); // MM-DD
+        const labels = data.map(e => e.date.slice(5)); 
         const weights = data.map(e => e.weight);
         const calories = data.map(e => e.calories);
         
-        // Color coding segments for GLP
-        // We need to create a segment configuration
-        const segmentColors = data.map(e => e.glpDose === 2.5 ? '#34C759' : '#FF3B30');
+        // Color mapping
+        const segmentColors = data.map(e => {
+            if (e.glpDose == 2.5) return '#34C759'; // Green
+            if (e.glpDose == 5.0) return '#FF3B30'; // Red
+            return '#8E8E93'; // Grey (None)
+        });
 
         if (myChart) myChart.destroy();
 
@@ -520,7 +555,7 @@ The Code
                         data: calories,
                         type: 'bar',
                         yAxisID: 'y1',
-                        backgroundColor: 'rgba(0, 122, 255, 0.2)',
+                        backgroundColor: 'rgba(0, 122, 255, 0.15)',
                         borderRadius: 4,
                         barThickness: 10
                     },
@@ -528,14 +563,13 @@ The Code
                         label: 'Weight',
                         data: weights,
                         yAxisID: 'y',
-                        borderColor: '#34C759', // Default fallback
+                        borderColor: '#8E8E93',
                         borderWidth: 3,
                         tension: 0.3,
                         pointBackgroundColor: '#fff',
                         pointBorderWidth: 2,
                         segment: {
                             borderColor: ctx => {
-                                // Logic: Use the color of the "target" point
                                 const index = ctx.p1DataIndex; 
                                 return segmentColors[index];
                             }
@@ -578,4 +612,3 @@ The Code
 </script>
 </body>
 </html>
-
