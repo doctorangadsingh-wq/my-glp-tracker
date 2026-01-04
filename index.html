@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health OS v2</title>
+    <title>Angad's GLP Journey</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
@@ -15,6 +15,7 @@
             --accent-green: #34C759;
             --accent-red: #FF3B30;
             --accent-orange: #FF9500;
+            --accent-purple: #AF52DE;
             --accent-grey: #8E8E93;
             --radius: 20px;
             --shadow: 0 4px 20px rgba(0,0,0,0.05);
@@ -49,15 +50,16 @@
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; }
 
         .stat-box {
             background: #F9F9F9;
-            padding: 15px;
+            padding: 15px 10px;
             border-radius: 12px;
             text-align: center;
         }
-        .stat-value { font-size: 20px; font-weight: 800; display: block; margin-top: 5px; }
-        .stat-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-value { font-size: 18px; font-weight: 800; display: block; margin-top: 5px; }
+        .stat-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
 
         .btn {
             background: var(--accent-blue);
@@ -131,10 +133,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
-        /* Indicators */
-        .tick { color: var(--accent-green); font-weight: bold; }
-        .cross { color: var(--accent-red); font-weight: bold; }
-
         /* Graph Container */
         .chart-container {
             position: relative; 
@@ -146,16 +144,7 @@
         .velocity-card { background: linear-gradient(135deg, #007AFF, #5856D6); color: white; }
         .velocity-card .stat-label { color: rgba(255,255,255,0.7); }
         .velocity-card .stat-value { color: white; }
-        .motivation-text {
-            font-size: 14px; 
-            color: rgba(255,255,255,0.9); 
-            text-align: center; 
-            margin-top: 15px; 
-            padding-top: 15px; 
-            border-top: 1px solid rgba(255,255,255,0.2);
-            line-height: 1.4;
-        }
-
+        
         /* GLP-1 Badge */
         .dose-badge {
             display: inline-block;
@@ -176,8 +165,8 @@
 
     <div id="setup-modal" style="display:none;">
         <div class="setup-content">
-            <h2>Welcome</h2>
-            <p style="color:var(--text-secondary); margin-bottom: 20px;">We need accurate stats for the calorie engine.</p>
+            <h2>Welcome to Angad's Journey</h2>
+            <p style="color:var(--text-secondary); margin-bottom: 20px;">Let's set up your stats.</p>
             
             <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Your Height (cm)</label>
             <input type="number" id="setup-height" placeholder="e.g. 175">
@@ -207,7 +196,7 @@
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <div>
-                <h1>Health OS</h1>
+                <h1>Angad's GLP Journey</h1>
                 <span id="current-date" style="color:var(--text-secondary); font-size: 14px;">Today</span>
             </div>
             <div id="bmi-pill" style="background:#E5E5EA; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 14px;">
@@ -216,7 +205,7 @@
         </div>
 
         <div class="card velocity-card">
-            <div class="grid-3">
+            <div class="grid-4">
                 <div class="stat-box" style="background:rgba(255,255,255,0.1);">
                     <span class="stat-label">Daily BMR</span>
                     <span class="stat-value" id="bmr-value">--</span>
@@ -226,12 +215,13 @@
                     <span class="stat-value" id="today-deficit">--</span>
                 </div>
                 <div class="stat-box" style="background:rgba(255,255,255,0.1);">
+                    <span class="stat-label">7-Day Deficit</span>
+                    <span class="stat-value" id="weekly-deficit-stat">--</span>
+                </div>
+                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
                     <span class="stat-label">Net Loss</span>
                     <span class="stat-value" id="net-loss">-- kg</span>
                 </div>
-            </div>
-            <div class="motivation-text" id="prediction-text">
-                Log today's calories to see your 30-day potential.
             </div>
         </div>
 
@@ -242,11 +232,11 @@
             </div>
             <div style="margin-top: 15px;" class="grid-2">
                 <div>
-                    <label class="stat-label">Date</label>
-                    <input type="date" id="glp-date">
+                    <label class="stat-label">Last Injection Date</label>
+                    <input type="date" id="glp-date" onchange="renderDashboard()">
                 </div>
                 <div>
-                    <label class="stat-label">Dosage</label>
+                    <label class="stat-label">Current Dosage</label>
                     <div class="toggle-group" id="glp-toggle">
                         <div class="toggle-option" onclick="setDose(0, this)">None</div>
                         <div class="toggle-option active" onclick="setDose(2.5, this)">2.5</div>
@@ -258,7 +248,7 @@
 
         <div class="card">
             <h3>Progress Overview</h3>
-            <p style="font-size:12px; color:var(--text-secondary);">Weight (Color coded by dose) vs Calories</p>
+            <p style="font-size:12px; color:var(--text-secondary);">Purple line indicates Rolling 7-Day Deficit</p>
             <div class="chart-container">
                 <canvas id="mainChart"></canvas>
             </div>
@@ -282,16 +272,6 @@
                 <div style="display:flex; align-items:center; justify-content: space-between; padding-top:20px;">
                     <label class="stat-label">Exercise? (+200kcal)</label>
                     <input type="checkbox" id="daily-exercise" style="width:25px; height:25px; margin:0;">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div>
-                    <label class="stat-label">Chest (cm)</label>
-                    <input type="number" id="daily-chest">
-                </div>
-                <div>
-                    <label class="stat-label">Waist (cm)</label>
-                    <input type="number" id="daily-waist">
                 </div>
             </div>
             <button class="btn" onclick="addEntry()">Log Today</button>
@@ -332,7 +312,7 @@
 
     // --- INITIALIZATION ---
     window.onload = function() {
-        const storedData = localStorage.getItem('healthApp_v2');
+        const storedData = localStorage.getItem('healthApp_v3');
         document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
         
         // Set default date for GLP input
@@ -340,7 +320,7 @@
 
         if (storedData) {
             appData = JSON.parse(storedData);
-            // Migration check for old data (if upgrading from v1 to v2)
+            // Migration check
             if(!appData.settings.age) appData.settings.age = 30;
             renderDashboard();
         } else {
@@ -382,8 +362,6 @@
         const calories = parseFloat(document.getElementById('daily-calories').value);
         const protein = parseFloat(document.getElementById('daily-protein').value);
         const exercise = document.getElementById('daily-exercise').checked;
-        const chest = parseFloat(document.getElementById('daily-chest').value) || null;
-        const waist = parseFloat(document.getElementById('daily-waist').value) || null;
         
         const glpDateInput = document.getElementById('glp-date').value;
 
@@ -401,8 +379,6 @@
             calories,
             protein,
             exercise,
-            chest,
-            waist,
             glpDose: currentDoseSelection, 
             glpInjectionDate: glpDateInput 
         };
@@ -421,37 +397,39 @@
     }
 
     function saveData() {
-        localStorage.setItem('healthApp_v2', JSON.stringify(appData));
+        localStorage.setItem('healthApp_v3', JSON.stringify(appData));
     }
 
     // --- CALCULATIONS & RENDERING ---
+    function getBMR(weight, height, age, gender) {
+        let b = (10 * weight) + (6.25 * height) - (5 * age);
+        if (gender === 'male') b += 5; else b -= 161;
+        return b;
+    }
+
     function renderDashboard() {
         const entries = appData.entries;
         
-        // 1. GLP Timer Logic (Runs even without entries)
+        // 1. GLP Timer Logic (Cyclical 7 Days)
         const glpDateVal = document.getElementById('glp-date').value;
         if (glpDateVal) {
-            const inputDate = new Date(glpDateVal);
-            inputDate.setHours(0,0,0,0);
+            const start = new Date(glpDateVal);
+            start.setHours(0,0,0,0);
             const today = new Date();
             today.setHours(0,0,0,0);
 
-            const diffTime = inputDate - today;
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            const diffTime = today - start;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
             let msg = "";
-            if (diffDays > 0) {
-                // Future date
-                msg = `Next Dose: In ${diffDays} days`;
+            if (diffDays < 0) {
+                msg = "Start date is in future";
             } else {
-                // Past or Today
-                // Logic: If injection was in past, next one is Injection + 7
-                const nextDose = new Date(inputDate);
-                nextDose.setDate(inputDate.getDate() + 7);
-                const daysUntilNext = Math.ceil((nextDose - today) / (1000 * 60 * 60 * 24));
+                const dayInCycle = diffDays % 7; // 0 = dose day, 1 = 1 day after, etc.
+                const daysUntilNext = 7 - dayInCycle;
                 
-                if (daysUntilNext === 0) msg = "Dose Due Today!";
-                else if (daysUntilNext < 0) msg = `Overdue by ${Math.abs(daysUntilNext)} days`;
+                if (dayInCycle === 0) msg = "Dose Due Today!";
+                else if (daysUntilNext === 1) msg = "Next Dose: Tomorrow";
                 else msg = `Next Dose: In ${daysUntilNext} days`;
             }
             document.getElementById('next-dose-date').innerText = msg;
@@ -469,43 +447,36 @@
         const loss = (appData.settings.startWeight - latest.weight).toFixed(1);
         document.getElementById('net-loss').innerText = `-${loss} kg`;
 
-        // 4. METABOLIC ENGINE (BMR & Deficit)
-        // Mifflin-St Jeor Equation
-        // Men: 10W + 6.25H - 5A + 5
-        // Women: 10W + 6.25H - 5A - 161
-        let bmr = (10 * latest.weight) + (6.25 * appData.settings.height) - (5 * appData.settings.age);
-        if (appData.settings.gender === 'male') bmr += 5;
-        else bmr -= 161;
-
-        let maintenance = bmr * 1.2; // Sedentary baseline
-        if (latest.exercise) maintenance += 200; // User rule: Add 200 if exercise
+        // 4. METABOLIC ENGINE (Today's Deficit)
+        let bmr = getBMR(latest.weight, appData.settings.height, appData.settings.age, appData.settings.gender);
+        let maintenance = bmr * 1.2; 
+        if (latest.exercise) maintenance += 200;
 
         const deficit = maintenance - latest.calories;
-        
         document.getElementById('bmr-value').innerText = Math.round(maintenance);
         
         const defEl = document.getElementById('today-deficit');
         if(deficit > 0) {
             defEl.innerText = `-${Math.round(deficit)}`;
-            defEl.style.color = '#34C759'; // Green
+            defEl.style.color = '#34C759'; 
         } else {
             defEl.innerText = `+${Math.round(Math.abs(deficit))}`;
-            defEl.style.color = '#FF3B30'; // Red
+            defEl.style.color = '#FF3B30'; 
         }
 
-        // 5. Prediction (30 Days)
-        // 7700kcal = 1kg fat
-        const predictedLoss = (deficit * 30) / 7700;
-        const projectedWeight = (latest.weight - predictedLoss).toFixed(1);
+        // 5. Weekly Deficit Calculation
+        // We will calculate this for every entry for the graph, but display the latest one here.
+        const weeklyDeficits = calculateRollingWeeklyDeficits(entries);
+        const currentWeeklyDeficit = weeklyDeficits[weeklyDeficits.length - 1];
         
-        let motivationHTML = "";
-        if (deficit > 0) {
-            motivationHTML = `If every day was like today, you'd lose <strong>${predictedLoss.toFixed(1)} kg</strong> in 30 days.<br>Projected Weight: <strong>${projectedWeight} kg</strong>`;
+        const weekEl = document.getElementById('weekly-deficit-stat');
+        if(currentWeeklyDeficit > 0) {
+            weekEl.innerText = `-${Math.round(currentWeeklyDeficit)}`;
+            weekEl.style.color = '#AF52DE'; // Purple
         } else {
-            motivationHTML = `You are in a surplus today. To lose weight, aim for calories below ${Math.round(maintenance)}.`;
+            weekEl.innerText = `+${Math.round(Math.abs(currentWeeklyDeficit))}`;
+            weekEl.style.color = '#FF3B30';
         }
-        document.getElementById('prediction-text').innerHTML = motivationHTML;
-
 
         // 6. Update History Table
         const tbody = document.getElementById('history-body');
@@ -524,23 +495,42 @@
             tbody.innerHTML += row;
         });
 
-        updateChart(entries);
+        updateChart(entries, weeklyDeficits);
+    }
+
+    function calculateRollingWeeklyDeficits(entries) {
+        // Returns an array matching entries length, where each point is sum of last 7 days deficit
+        return entries.map((entry, index) => {
+            let sumDeficit = 0;
+            // Look back up to 6 days + today = 7 days
+            for (let i = 0; i < 7; i++) {
+                const pastIndex = index - i;
+                if (pastIndex >= 0) {
+                    const pastEntry = entries[pastIndex];
+                    let dailyBMR = getBMR(pastEntry.weight, appData.settings.height, appData.settings.age, appData.settings.gender);
+                    let dailyMaint = dailyBMR * 1.2;
+                    if(pastEntry.exercise) dailyMaint += 200;
+                    sumDeficit += (dailyMaint - pastEntry.calories);
+                }
+            }
+            return sumDeficit;
+        });
     }
 
     // --- CHART LOGIC ---
     let myChart;
 
-    function updateChart(data) {
+    function updateChart(entries, weeklyDeficits) {
         const ctx = document.getElementById('mainChart').getContext('2d');
-        const labels = data.map(e => e.date.slice(5)); 
-        const weights = data.map(e => e.weight);
-        const calories = data.map(e => e.calories);
+        const labels = entries.map(e => e.date.slice(5)); 
+        const weights = entries.map(e => e.weight);
+        const calories = entries.map(e => e.calories);
         
-        // Color mapping
-        const segmentColors = data.map(e => {
-            if (e.glpDose == 2.5) return '#34C759'; // Green
-            if (e.glpDose == 5.0) return '#FF3B30'; // Red
-            return '#8E8E93'; // Grey (None)
+        // Color mapping for weight line
+        const segmentColors = entries.map(e => {
+            if (e.glpDose == 2.5) return '#34C759'; 
+            if (e.glpDose == 5.0) return '#FF3B30'; 
+            return '#8E8E93'; 
         });
 
         if (myChart) myChart.destroy();
@@ -555,9 +545,10 @@
                         data: calories,
                         type: 'bar',
                         yAxisID: 'y1',
-                        backgroundColor: 'rgba(0, 122, 255, 0.15)',
+                        backgroundColor: 'rgba(0, 122, 255, 0.1)',
                         borderRadius: 4,
-                        barThickness: 10
+                        barThickness: 10,
+                        order: 3
                     },
                     {
                         label: 'Weight',
@@ -573,7 +564,20 @@
                                 const index = ctx.p1DataIndex; 
                                 return segmentColors[index];
                             }
-                        }
+                        },
+                        order: 1
+                    },
+                    {
+                        label: '7-Day Deficit',
+                        data: weeklyDeficits,
+                        type: 'line',
+                        yAxisID: 'y2',
+                        borderColor: '#AF52DE', // Purple
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.4,
+                        pointRadius: 0,
+                        order: 2
                     }
                 ]
             },
@@ -592,14 +596,24 @@
                         type: 'linear',
                         display: true,
                         position: 'left',
-                        grid: { display: false }
+                        grid: { display: false },
+                        title: { display: true, text: 'Weight' }
                     },
                     y1: {
                         type: 'linear',
                         display: true,
                         position: 'right',
                         grid: { color: '#F2F2F7' },
-                        min: 0
+                        min: 0,
+                        title: { display: true, text: 'Calories' }
+                    },
+                    y2: {
+                        type: 'linear',
+                        display: false, // Hidden axis for scale logic
+                        position: 'right',
+                        grid: { display: false },
+                        // Generally weekly deficit is 0 to 7000. 
+                        // We hide it so it doesn't clutter, but it scales independently.
                     },
                     x: {
                         grid: { display: false }
