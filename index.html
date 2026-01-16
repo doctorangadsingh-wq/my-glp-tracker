@@ -3,626 +3,508 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Angad's GLP Journey</title>
+    <title>BioMetric Pro | Health Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkbg: '#121212',
+                        cardbg: '#1E1E1E',
+                        neon: '#00E5FF',
+                        lime: '#76FF03',
+                        danger: '#FF1744'
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        :root {
-            --bg-color: #F2F2F7;
-            --card-bg: #FFFFFF;
-            --text-primary: #1C1C1E;
-            --text-secondary: #8E8E93;
-            --accent-blue: #007AFF;
-            --accent-green: #34C759;
-            --accent-red: #FF3B30;
-            --accent-orange: #FF9500;
-            --accent-purple: #AF52DE;
-            --accent-grey: #8E8E93;
-            --radius: 20px;
-            --shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            margin: 0;
-            padding: 20px;
-            -webkit-font-smoothing: antialiased;
-        }
-
-        h1, h2, h3 { margin: 0; font-weight: 700; }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding-bottom: 50px;
-        }
-
-        /* --- UI COMPONENTS --- */
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            box-shadow: var(--shadow);
-            margin-bottom: 20px;
-            transition: transform 0.2s;
-        }
-
-        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
-        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; }
-
-        .stat-box {
-            background: #F9F9F9;
-            padding: 15px 10px;
-            border-radius: 12px;
-            text-align: center;
-        }
-        .stat-value { font-size: 18px; font-weight: 800; display: block; margin-top: 5px; }
-        .stat-label { font-size: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
-
-        .btn {
-            background: var(--accent-blue);
-            color: white;
-            border: none;
-            padding: 15px;
-            border-radius: 12px;
-            width: 100%;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .btn:hover { opacity: 0.9; }
-
-        input, select {
-            width: 100%;
-            padding: 12px;
-            border-radius: 10px;
-            border: 1px solid #E5E5EA;
-            background: #F2F2F7;
-            font-size: 16px;
-            margin-bottom: 10px;
-            box-sizing: border-box;
-        }
-        input:focus { outline: none; border-color: var(--accent-blue); background: #fff; }
-
-        /* --- SPECIFIC SECTIONS --- */
-        
-        /* Setup Modal */
-        #setup-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .setup-content {
-            background: white;
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        /* Toggles */
-        .toggle-group {
-            display: flex;
-            background: #E5E5EA;
-            padding: 4px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-        .toggle-option {
-            flex: 1;
-            padding: 10px;
-            text-align: center;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-        .toggle-option.active {
-            background: white;
-            color: var(--text-primary);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        
-        /* Graph Container */
-        .chart-container {
-            position: relative; 
-            height: 350px; 
-            width: 100%;
-        }
-
-        /* Velocity & Predictions */
-        .velocity-card { background: linear-gradient(135deg, #007AFF, #5856D6); color: white; }
-        .velocity-card .stat-label { color: rgba(255,255,255,0.7); }
-        .velocity-card .stat-value { color: white; }
-        
-        /* GLP-1 Badge */
-        .dose-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            color: white;
-            margin-left: 10px;
-        }
-        .dose-2-5 { background-color: var(--accent-green); }
-        .dose-5 { background-color: var(--accent-red); }
-        .dose-none { background-color: var(--accent-grey); }
-
+        body { background-color: #121212; color: #E0E0E0; font-family: 'Segoe UI', sans-serif; }
+        .nav-btn.active { border-bottom: 2px solid #76FF03; color: #76FF03; }
+        input, select { background-color: #2C2C2C; border: 1px solid #333; color: white; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
     </style>
 </head>
-<body>
+<body class="h-screen flex flex-col overflow-hidden">
 
-    <div id="setup-modal" style="display:none;">
-        <div class="setup-content">
-            <h2>Welcome to Angad's Journey</h2>
-            <p style="color:var(--text-secondary); margin-bottom: 20px;">Let's set up your stats.</p>
-            
-            <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Your Height (cm)</label>
-            <input type="number" id="setup-height" placeholder="e.g. 175">
-            
-            <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Starting Weight (kg)</label>
-            <input type="number" id="setup-weight" placeholder="e.g. 90">
+    <header class="p-4 bg-cardbg border-b border-gray-800 flex justify-between items-center">
+        <h1 class="text-xl font-bold tracking-wider text-neon"><i class="fas fa-heartbeat"></i> BioMetric<span class="text-white">Pro</span></h1>
+        <button onclick="exportData()" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded border border-gray-600">
+            <i class="fas fa-download"></i> Backup Data
+        </button>
+    </header>
 
-            <div class="grid-2">
-                <div>
-                    <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Age</label>
-                    <input type="number" id="setup-age" placeholder="30">
-                </div>
-                <div>
-                    <label style="text-align:left; display:block; font-size:12px; margin-bottom:5px;">Gender</label>
-                    <select id="setup-gender">
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                    </select>
-                </div>
-            </div>
+    <main class="flex-1 overflow-y-auto p-4 pb-24" id="main-content">
+        </main>
 
-            <button class="btn" onclick="saveSetup()">Start Tracking</button>
-        </div>
-    </div>
+    <nav class="fixed bottom-0 w-full bg-cardbg border-t border-gray-800 flex justify-around p-3 pb-6 z-50">
+        <button onclick="switchView('dashboard')" class="nav-btn active flex flex-col items-center text-xs">
+            <i class="fas fa-chart-line text-lg mb-1"></i> Dashboard
+        </button>
+        <button onclick="switchView('log')" class="nav-btn flex flex-col items-center text-xs">
+            <i class="fas fa-plus-circle text-lg mb-1"></i> Log
+        </button>
+        <button onclick="switchView('gym')" class="nav-btn flex flex-col items-center text-xs">
+            <i class="fas fa-dumbbell text-lg mb-1"></i> Gym
+        </button>
+        <button onclick="switchView('meds')" class="nav-btn flex flex-col items-center text-xs">
+            <i class="fas fa-syringe text-lg mb-1"></i> GLP-1
+        </button>
+        <button onclick="switchView('predict')" class="nav-btn flex flex-col items-center text-xs">
+            <i class="fas fa-calculator text-lg mb-1"></i> Predict
+        </button>
+    </nav>
 
-    <div class="container" id="app-container">
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <div>
-                <h1>Angad's GLP Journey</h1>
-                <span id="current-date" style="color:var(--text-secondary); font-size: 14px;">Today</span>
-            </div>
-            <div id="bmi-pill" style="background:#E5E5EA; padding: 5px 15px; border-radius: 20px; font-weight: 700; font-size: 14px;">
-                BMI: --
-            </div>
-        </div>
-
-        <div class="card velocity-card">
-            <div class="grid-4">
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">Daily BMR</span>
-                    <span class="stat-value" id="bmr-value">--</span>
-                </div>
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">Today's Deficit</span>
-                    <span class="stat-value" id="today-deficit">--</span>
-                </div>
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">7-Day Deficit</span>
-                    <span class="stat-value" id="weekly-deficit-stat">--</span>
-                </div>
-                <div class="stat-box" style="background:rgba(255,255,255,0.1);">
-                    <span class="stat-label">Net Loss</span>
-                    <span class="stat-value" id="net-loss">-- kg</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3>GLP-1 Status</h3>
-                <span id="next-dose-date" style="font-weight:600; color:var(--accent-blue);">--</span>
-            </div>
-            <div style="margin-top: 15px;" class="grid-2">
-                <div>
-                    <label class="stat-label">Last Injection Date</label>
-                    <input type="date" id="glp-date" onchange="renderDashboard()">
-                </div>
-                <div>
-                    <label class="stat-label">Current Dosage</label>
-                    <div class="toggle-group" id="glp-toggle">
-                        <div class="toggle-option" onclick="setDose(0, this)">None</div>
-                        <div class="toggle-option active" onclick="setDose(2.5, this)">2.5</div>
-                        <div class="toggle-option" onclick="setDose(5, this)">5.0</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Progress Overview</h3>
-            <p style="font-size:12px; color:var(--text-secondary);">Purple line indicates Rolling 7-Day Deficit</p>
-            <div class="chart-container">
-                <canvas id="mainChart"></canvas>
-            </div>
-        </div>
-
-        <div class="card">
-            <h3>Daily Log</h3>
-            <div class="grid-2">
-                <div>
-                    <label class="stat-label">Weight (kg)</label>
-                    <input type="number" id="daily-weight" step="0.1">
-                </div>
-                <div>
-                    <label class="stat-label">Calories</label>
-                    <input type="number" id="daily-calories">
-                </div>
-                <div>
-                    <label class="stat-label">Protein (g)</label>
-                    <input type="number" id="daily-protein">
-                </div>
-                <div style="display:flex; align-items:center; justify-content: space-between; padding-top:20px;">
-                    <label class="stat-label">Exercise? (+200kcal)</label>
-                    <input type="checkbox" id="daily-exercise" style="width:25px; height:25px; margin:0;">
-                </div>
-            </div>
-            <button class="btn" onclick="addEntry()">Log Today</button>
-        </div>
-
-        <div class="card">
-            <h3>Recent History</h3>
-            <table style="width:100%; text-align:left; border-collapse: collapse; margin-top:15px; font-size:14px;">
-                <thead>
-                    <tr style="border-bottom: 1px solid #E5E5EA; color:var(--text-secondary);">
-                        <th style="padding:10px 0;">Date</th>
-                        <th>Wt</th>
-                        <th>Cal.</th>
-                        <th>Dose</th>
-                    </tr>
-                </thead>
-                <tbody id="history-body">
-                    </tbody>
-            </table>
-        </div>
-
-    </div>
-
-<script>
-    // --- STATE MANAGEMENT ---
-    let appData = {
-        settings: {
-            height: null,
-            startWeight: null,
-            age: 30,
-            gender: 'male',
-            startDate: null
-        },
-        entries: [] 
-    };
-
-    let currentDoseSelection = 2.5;
-
-    // --- INITIALIZATION ---
-    window.onload = function() {
-        const storedData = localStorage.getItem('healthApp_v3');
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-        
-        // Set default date for GLP input
-        document.getElementById('glp-date').valueAsDate = new Date();
-
-        if (storedData) {
-            appData = JSON.parse(storedData);
-            // Migration check
-            if(!appData.settings.age) appData.settings.age = 30;
-            renderDashboard();
-        } else {
-            document.getElementById('setup-modal').style.display = 'flex';
-        }
-    };
-
-    // --- SETUP LOGIC ---
-    function saveSetup() {
-        const h = parseFloat(document.getElementById('setup-height').value);
-        const w = parseFloat(document.getElementById('setup-weight').value);
-        const a = parseFloat(document.getElementById('setup-age').value);
-        const g = document.getElementById('setup-gender').value;
-        
-        if (!h || !w || !a) return alert("Please fill all fields");
-
-        appData.settings.height = h;
-        appData.settings.startWeight = w;
-        appData.settings.age = a;
-        appData.settings.gender = g;
-        appData.settings.startDate = new Date().toISOString().split('T')[0];
-        
-        saveData();
-        document.getElementById('setup-modal').style.display = 'none';
-        renderDashboard();
-    }
-
-    function setDose(amount, el) {
-        currentDoseSelection = amount;
-        const options = document.querySelectorAll('.toggle-option');
-        options.forEach(opt => opt.classList.remove('active'));
-        el.classList.add('active');
-    }
-
-    // --- CORE FUNCTIONS ---
-    function addEntry() {
-        const date = new Date().toISOString().split('T')[0];
-        const weight = parseFloat(document.getElementById('daily-weight').value);
-        const calories = parseFloat(document.getElementById('daily-calories').value);
-        const protein = parseFloat(document.getElementById('daily-protein').value);
-        const exercise = document.getElementById('daily-exercise').checked;
-        
-        const glpDateInput = document.getElementById('glp-date').value;
-
-        // Validation
-        if (!weight || !calories) {
-            alert("Please enter at least Weight and Calories.");
-            return;
-        }
-        
-        appData.entries = appData.entries.filter(e => e.date !== date);
-
-        const newEntry = {
-            date,
-            weight,
-            calories,
-            protein,
-            exercise,
-            glpDose: currentDoseSelection, 
-            glpInjectionDate: glpDateInput 
+    <script>
+        // --- STATE MANAGEMENT ---
+        const STORE_KEY = 'health_tracker_v1';
+        let appData = JSON.parse(localStorage.getItem(STORE_KEY)) || {
+            user: { height: '', heightUnit: 'cm', weightUnit: 'lbs' },
+            weight: [],
+            calories: [],
+            protein: [],
+            exercises: [],
+            glp1: []
         };
 
-        appData.entries.push(newEntry);
-        appData.entries.sort((a, b) => new Date(a.date) - new Date(b.date));
+        // --- SAVE DATA ---
+        function saveData() {
+            localStorage.setItem(STORE_KEY, JSON.stringify(appData));
+            updateUI();
+        }
 
-        saveData();
-        renderDashboard();
-        
-        // Clear inputs
-        document.getElementById('daily-weight').value = '';
-        document.getElementById('daily-calories').value = '';
-        document.getElementById('daily-protein').value = '';
-        document.getElementById('daily-exercise').checked = false;
-    }
+        // --- VIEWS ---
+        const views = {
+            dashboard: () => `
+                <div class="grid gap-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-cardbg p-4 rounded-lg shadow-lg border border-gray-800">
+                            <h3 class="text-gray-400 text-xs uppercase">Current BMI</h3>
+                            <p class="text-2xl font-bold text-neon" id="bmi-display">--</p>
+                        </div>
+                        <div class="bg-cardbg p-4 rounded-lg shadow-lg border border-gray-800">
+                            <h3 class="text-gray-400 text-xs uppercase">Weight Change</h3>
+                            <p class="text-2xl font-bold text-lime" id="weight-loss-display">--</p>
+                        </div>
+                    </div>
 
-    function saveData() {
-        localStorage.setItem('healthApp_v3', JSON.stringify(appData));
-    }
+                    <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
+                        <h3 class="text-white font-bold mb-4">Weight History</h3>
+                        <div class="chart-container"><canvas id="weightChart"></canvas></div>
+                    </div>
+                    <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
+                        <h3 class="text-white font-bold mb-4">Calorie Intake</h3>
+                        <div class="chart-container"><canvas id="calChart"></canvas></div>
+                    </div>
+                    <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
+                        <h3 class="text-white font-bold mb-4">Protein Intake</h3>
+                        <div class="chart-container"><canvas id="proteinChart"></canvas></div>
+                    </div>
+                </div>
+            `,
+            log: () => `
+                <div class="max-w-md mx-auto bg-cardbg p-6 rounded-lg border border-gray-800">
+                    <h2 class="text-xl text-neon mb-6">Daily Logger</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">Date</label>
+                            <input type="date" id="log-date" class="w-full p-3 rounded outline-none focus:border-neon">
+                        </div>
 
-    // --- CALCULATIONS & RENDERING ---
-    function getBMR(weight, height, age, gender) {
-        let b = (10 * weight) + (6.25 * height) - (5 * age);
-        if (gender === 'male') b += 5; else b -= 161;
-        return b;
-    }
+                        <div class="border-t border-gray-700 pt-4">
+                            <label class="block text-white mb-1">Weight (${appData.user.weightUnit || 'lbs'})</label>
+                            <input type="number" id="log-weight" placeholder="e.g. 180" class="w-full p-3 rounded mb-2">
+                            <button onclick="addEntry('weight')" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-2 rounded">Log Weight</button>
+                        </div>
 
-    function renderDashboard() {
-        const entries = appData.entries;
-        
-        // 1. GLP Timer Logic (Cyclical 7 Days)
-        const glpDateVal = document.getElementById('glp-date').value;
-        if (glpDateVal) {
-            const start = new Date(glpDateVal);
-            start.setHours(0,0,0,0);
-            const today = new Date();
-            today.setHours(0,0,0,0);
+                        <div class="border-t border-gray-700 pt-4">
+                            <label class="block text-white mb-1">Calories (kcal)</label>
+                            <input type="number" id="log-cals" placeholder="e.g. 2500" class="w-full p-3 rounded mb-2">
+                            <button onclick="addEntry('calories')" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-2 rounded">Log Calories</button>
+                        </div>
 
-            const diffTime = today - start;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                        <div class="border-t border-gray-700 pt-4">
+                            <label class="block text-white mb-1">Protein (g)</label>
+                            <input type="number" id="log-protein" placeholder="e.g. 150" class="w-full p-3 rounded mb-2">
+                            <button onclick="addEntry('protein')" class="w-full bg-green-600 hover:bg-green-500 text-white p-2 rounded">Log Protein</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            gym: () => `
+                <div class="bg-cardbg p-4 rounded-lg border border-gray-800 mb-6">
+                    <h2 class="text-xl text-lime mb-4"><i class="fas fa-dumbbell"></i> Workout Logger</h2>
+                    
+                    <div class="mb-4">
+                        <label class="text-gray-400 text-sm">Select Exercise</label>
+                        <select id="gym-select" class="w-full p-3 rounded mt-1" onchange="updateGymInputs()">
+                            <option value="pushup">Push-Ups (Bodyweight)</option>
+                            <option value="squat_bw">Squats (Bodyweight)</option>
+                            <option value="squat_machine">Squats (Machine)</option>
+                            <option value="squat_bar">Squats (Barbell)</option>
+                            <option value="deadlift">Deadlift (Barbell)</option>
+                            <option value="lat_pull">Lat Pull Down (Machine)</option>
+                            <option value="bench">Bench Press (Barbell)</option>
+                            <option value="shoulder">Shoulder Press (Barbell)</option>
+                            <option value="bicep">Bicep Curl</option>
+                            <option value="misc">Miscellaneous</option>
+                        </select>
+                        <p id="gym-hint" class="text-xs text-neon mt-2 italic"></p>
+                    </div>
 
-            let msg = "";
-            if (diffDays < 0) {
-                msg = "Start date is in future";
-            } else {
-                const dayInCycle = diffDays % 7; // 0 = dose day, 1 = 1 day after, etc.
-                const daysUntilNext = 7 - dayInCycle;
-                
-                if (dayInCycle === 0) msg = "Dose Due Today!";
-                else if (daysUntilNext === 1) msg = "Next Dose: Tomorrow";
-                else msg = `Next Dose: In ${daysUntilNext} days`;
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                         <div>
+                            <label class="text-gray-400 text-sm">Weight</label>
+                            <select id="gym-weight" class="w-full p-3 rounded mt-1">
+                                </select>
+                        </div>
+                        <div>
+                            <label class="text-gray-400 text-sm">Sets</label>
+                            <input type="number" id="gym-sets" placeholder="3" class="w-full p-3 rounded mt-1">
+                        </div>
+                    </div>
+                    
+                    <button onclick="logExercise()" class="w-full bg-lime text-black font-bold p-3 rounded hover:bg-green-400">LOG WORKOUT</button>
+                </div>
+
+                <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
+                    <h3 class="text-white font-bold mb-4">Recent Workouts</h3>
+                    <ul id="gym-history" class="text-sm text-gray-300 space-y-3"></ul>
+                </div>
+            `,
+            meds: () => `
+                <div class="bg-cardbg p-6 rounded-lg border border-gray-800 text-center">
+                    <h2 class="text-2xl text-neon mb-2">GLP-1 Tracker</h2>
+                    <p class="text-gray-400 mb-6">Track your weekly injections</p>
+
+                    <div id="glp-countdown" class="bg-gray-800 p-6 rounded-lg mb-6 border border-gray-700">
+                        <h3 class="text-lg text-white">Next Dose In:</h3>
+                        <p class="text-4xl font-bold text-lime my-2" id="days-left">--</p>
+                        <p class="text-xs text-gray-500" id="next-date">Date: --</p>
+                    </div>
+
+                    <div class="text-left">
+                        <label class="text-gray-400 text-sm">Log Injection Date</label>
+                        <input type="date" id="glp-date" class="w-full p-3 rounded mt-1 mb-4">
+                        <button onclick="logMeds()" class="w-full bg-neon text-black font-bold p-3 rounded">CONFIRM INJECTION</button>
+                    </div>
+
+                    <div class="mt-8 text-left">
+                        <h4 class="text-white border-b border-gray-700 pb-2 mb-2">History</h4>
+                        <ul id="meds-list" class="text-sm text-gray-400 space-y-2"></ul>
+                    </div>
+                </div>
+            `,
+            predict: () => `
+                <div class="bg-cardbg p-6 rounded-lg border border-gray-800">
+                    <h2 class="text-xl text-white mb-4"><i class="fas fa-flask text-neon"></i> Weight Loss Predictor</h2>
+                    <p class="text-sm text-gray-400 mb-4">
+                        Based on your last 14 log entries, we calculate your daily rate of change using linear regression math ($y = mx + b$).
+                    </p>
+
+                    <div class="bg-gray-900 p-4 rounded mb-4">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-400">Current Trend:</span>
+                            <span id="trend-rate" class="font-mono text-white">--</span>
+                        </div>
+                         <div class="flex justify-between">
+                            <span class="text-gray-400">R² Accuracy:</span>
+                            <span id="trend-accuracy" class="font-mono text-white">--</span>
+                        </div>
+                    </div>
+
+                    <label class="text-gray-400 text-sm">Predict my weight on:</label>
+                    <input type="date" id="pred-date" class="w-full p-3 rounded mt-1 mb-4">
+                    <button onclick="calculatePrediction()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white p-3 rounded">CALCULATE</button>
+
+                    <div id="pred-result" class="hidden mt-6 text-center border-t border-gray-700 pt-6">
+                        <p class="text-gray-400">Predicted Weight:</p>
+                        <p class="text-4xl font-bold text-neon mt-2" id="pred-value">--</p>
+                    </div>
+                </div>
+            `
+        };
+
+        // --- CORE LOGIC ---
+
+        function init() {
+            // Check for first time setup (User Info)
+            if(!appData.user.height) {
+                const h = prompt("Welcome! To start, enter your height (in cm):", "175");
+                if(h) {
+                    appData.user.height = h;
+                    saveData();
+                }
             }
-            document.getElementById('next-dose-date').innerText = msg;
-        }
-
-        if (entries.length === 0) return;
-        const latest = entries[entries.length - 1];
-
-        // 2. BMI
-        const heightM = appData.settings.height / 100;
-        const bmi = (latest.weight / (heightM * heightM)).toFixed(1);
-        document.getElementById('bmi-pill').innerText = `BMI: ${bmi}`;
-
-        // 3. Net Loss
-        const loss = (appData.settings.startWeight - latest.weight).toFixed(1);
-        document.getElementById('net-loss').innerText = `-${loss} kg`;
-
-        // 4. METABOLIC ENGINE (Today's Deficit)
-        let bmr = getBMR(latest.weight, appData.settings.height, appData.settings.age, appData.settings.gender);
-        let maintenance = bmr * 1.2; 
-        if (latest.exercise) maintenance += 200;
-
-        const deficit = maintenance - latest.calories;
-        document.getElementById('bmr-value').innerText = Math.round(maintenance);
-        
-        const defEl = document.getElementById('today-deficit');
-        if(deficit > 0) {
-            defEl.innerText = `-${Math.round(deficit)}`;
-            defEl.style.color = '#34C759'; 
-        } else {
-            defEl.innerText = `+${Math.round(Math.abs(deficit))}`;
-            defEl.style.color = '#FF3B30'; 
-        }
-
-        // 5. Weekly Deficit Calculation
-        // We will calculate this for every entry for the graph, but display the latest one here.
-        const weeklyDeficits = calculateRollingWeeklyDeficits(entries);
-        const currentWeeklyDeficit = weeklyDeficits[weeklyDeficits.length - 1];
-        
-        const weekEl = document.getElementById('weekly-deficit-stat');
-        if(currentWeeklyDeficit > 0) {
-            weekEl.innerText = `-${Math.round(currentWeeklyDeficit)}`;
-            weekEl.style.color = '#AF52DE'; // Purple
-        } else {
-            weekEl.innerText = `+${Math.round(Math.abs(currentWeeklyDeficit))}`;
-            weekEl.style.color = '#FF3B30';
-        }
-
-        // 6. Update History Table
-        const tbody = document.getElementById('history-body');
-        tbody.innerHTML = '';
-        [...entries].reverse().slice(0, 5).forEach(e => {
-            let doseBadge = 'dose-none';
-            if (e.glpDose == 2.5) doseBadge = 'dose-2-5';
-            if (e.glpDose == 5.0) doseBadge = 'dose-5';
+            switchView('dashboard');
             
-            const row = `<tr>
-                <td style="padding:10px 0; color:var(--text-secondary);">${e.date.slice(5)}</td>
-                <td style="font-weight:600;">${e.weight}</td>
-                <td>${e.calories}</td>
-                <td><span class="dose-badge ${doseBadge}">${e.glpDose > 0 ? e.glpDose + 'mg' : 'Off'}</span></td>
-            </tr>`;
-            tbody.innerHTML += row;
-        });
+            // Set default date inputs to today
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelectorAll('input[type="date"]').forEach(i => i.value = today);
+        }
 
-        updateChart(entries, weeklyDeficits);
-    }
+        function switchView(viewName) {
+            document.getElementById('main-content').innerHTML = views[viewName]();
+            
+            // Update active nav button
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.nav-btn')[['dashboard','log','gym','meds','predict'].indexOf(viewName)].classList.add('active');
 
-    function calculateRollingWeeklyDeficits(entries) {
-        // Returns an array matching entries length, where each point is sum of last 7 days deficit
-        return entries.map((entry, index) => {
-            let sumDeficit = 0;
-            // Look back up to 6 days + today = 7 days
-            for (let i = 0; i < 7; i++) {
-                const pastIndex = index - i;
-                if (pastIndex >= 0) {
-                    const pastEntry = entries[pastIndex];
-                    let dailyBMR = getBMR(pastEntry.weight, appData.settings.height, appData.settings.age, appData.settings.gender);
-                    let dailyMaint = dailyBMR * 1.2;
-                    if(pastEntry.exercise) dailyMaint += 200;
-                    sumDeficit += (dailyMaint - pastEntry.calories);
-                }
+            if (viewName === 'dashboard') loadDashboard();
+            if (viewName === 'gym') populateGymDropdowns();
+            if (viewName === 'meds') loadMeds();
+        }
+
+        // --- DATA LOGGING FUNCTIONS ---
+
+        function addEntry(type) {
+            const date = document.getElementById('log-date').value;
+            const valInput = document.getElementById(type === 'weight' ? 'log-weight' : type === 'calories' ? 'log-cals' : 'log-protein');
+            const val = parseFloat(valInput.value);
+
+            if (!date || isNaN(val)) return alert("Please enter valid data");
+
+            // Add or overwrite entry for that date
+            const existingIndex = appData[type].findIndex(e => e.date === date);
+            if (existingIndex > -1) {
+                appData[type][existingIndex].value = val;
+            } else {
+                appData[type].push({ date: date, value: val });
             }
-            return sumDeficit;
-        });
-    }
+            
+            // Sort by date
+            appData[type].sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            saveData();
+            valInput.value = '';
+            alert(`${type} logged!`);
+        }
 
-    // --- CHART LOGIC ---
-    let myChart;
+        // --- GYM LOGIC ---
 
-    function updateChart(entries, weeklyDeficits) {
-        const ctx = document.getElementById('mainChart').getContext('2d');
-        const labels = entries.map(e => e.date.slice(5)); 
-        const weights = entries.map(e => e.weight);
-        const calories = entries.map(e => e.calories);
-        
-        // Color mapping for weight line
-        const segmentColors = entries.map(e => {
-            if (e.glpDose == 2.5) return '#34C759'; 
-            if (e.glpDose == 5.0) return '#FF3B30'; 
-            return '#8E8E93'; 
-        });
+        function populateGymDropdowns() {
+            const select = document.getElementById('gym-weight');
+            select.innerHTML = '';
+            // 10 to 200
+            for(let i=10; i<=200; i+=10) {
+                const opt = document.createElement('option');
+                opt.value = i;
+                opt.innerText = i;
+                select.appendChild(opt);
+            }
+            updateGymInputs();
+        }
 
-        if (myChart) myChart.destroy();
+        function updateGymInputs() {
+            const type = document.getElementById('gym-select').value;
+            const hint = document.getElementById('gym-hint');
+            const weightInput = document.getElementById('gym-weight');
+            
+            // Logic for Barbell exercises
+            if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
+                hint.innerText = "⚠️ Enter weight for ONE SIDE only. (App assumes 45lb Olympic Bar)";
+                weightInput.disabled = false;
+            } else if (['pushup', 'squat_bw'].includes(type)) {
+                hint.innerText = "Bodyweight exercise.";
+                weightInput.disabled = true;
+            } else {
+                hint.innerText = "Enter total weight stack/dumbbell weight.";
+                weightInput.disabled = false;
+            }
+            loadGymHistory();
+        }
 
-        myChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: [
-                    {
-                        label: 'Calories',
-                        data: calories,
-                        type: 'bar',
-                        yAxisID: 'y1',
-                        backgroundColor: 'rgba(0, 122, 255, 0.1)',
-                        borderRadius: 4,
-                        barThickness: 10,
-                        order: 3
-                    },
-                    {
-                        label: 'Weight',
-                        data: weights,
-                        yAxisID: 'y',
-                        borderColor: '#8E8E93',
-                        borderWidth: 3,
+        function logExercise() {
+            const type = document.getElementById('gym-select').value;
+            let weight = parseInt(document.getElementById('gym-weight').value);
+            const sets = document.getElementById('gym-sets').value;
+            const date = new Date().toISOString().split('T')[0];
+
+            if(!sets) return alert("Enter sets");
+
+            let displayWeight = weight;
+            
+            // THE ONE SIDE FORMULA
+            if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
+                displayWeight = (weight * 2) + 45; 
+            }
+            if(['pushup', 'squat_bw'].includes(type)) displayWeight = 0;
+
+            appData.exercises.unshift({
+                date: date,
+                type: type,
+                inputWeight: weight, // Stored just in case
+                totalWeight: displayWeight,
+                sets: sets
+            });
+            saveData();
+            loadGymHistory();
+        }
+
+        function loadGymHistory() {
+            const list = document.getElementById('gym-history');
+            if(!list) return;
+            list.innerHTML = '';
+            appData.exercises.slice(0, 10).forEach(ex => {
+                let name = ex.type.replace('_', ' ').toUpperCase();
+                let wString = ex.totalWeight > 0 ? `${ex.totalWeight} lbs` : 'Bodyweight';
+                list.innerHTML += `<li class="border-b border-gray-800 pb-2 flex justify-between">
+                    <span>${name}</span>
+                    <span class="text-neon">${ex.sets} sets @ ${wString}</span>
+                </li>`;
+            });
+        }
+
+        // --- DASHBOARD CHARTS ---
+
+        function loadDashboard() {
+            // BMI
+            if(appData.weight.length > 0) {
+                const lastW = appData.weight[appData.weight.length-1].value;
+                const hM = appData.user.height / 100;
+                const bmi = (lastW * 0.453592) / (hM * hM); // Assuming lbs input, convert to kg for formula
+                document.getElementById('bmi-display').innerText = bmi.toFixed(1);
+
+                const firstW = appData.weight[0].value;
+                const diff = lastW - firstW;
+                const elem = document.getElementById('weight-loss-display');
+                elem.innerText = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' lbs';
+                elem.className = diff <= 0 ? 'text-2xl font-bold text-lime' : 'text-2xl font-bold text-danger';
+            }
+
+            renderChart('weightChart', appData.weight, 'Weight', '#00E5FF');
+            renderChart('calChart', appData.calories, 'Calories', '#E040FB');
+            renderChart('proteinChart', appData.protein, 'Protein', '#76FF03');
+        }
+
+        function renderChart(canvasId, dataArr, label, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            // Get last 14 entries max for clean graph
+            const slice = dataArr.slice(-14);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: slice.map(d => d.date.substring(5)), // Show MM-DD
+                    datasets: [{
+                        label: label,
+                        data: slice.map(d => d.value),
+                        borderColor: color,
+                        backgroundColor: color + '20', // transparent fill
                         tension: 0.3,
-                        pointBackgroundColor: '#fff',
-                        pointBorderWidth: 2,
-                        segment: {
-                            borderColor: ctx => {
-                                const index = ctx.p1DataIndex; 
-                                return segmentColors[index];
-                            }
-                        },
-                        order: 1
-                    },
-                    {
-                        label: '7-Day Deficit',
-                        data: weeklyDeficits,
-                        type: 'line',
-                        yAxisID: 'y2',
-                        borderColor: '#AF52DE', // Purple
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        pointRadius: 0,
-                        order: 2
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
+                        fill: true
+                    }]
                 },
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
-                        type: 'linear',
-                        display: true,
-                        position: 'left',
-                        grid: { display: false },
-                        title: { display: true, text: 'Weight' }
-                    },
-                    y1: {
-                        type: 'linear',
-                        display: true,
-                        position: 'right',
-                        grid: { color: '#F2F2F7' },
-                        min: 0,
-                        title: { display: true, text: 'Calories' }
-                    },
-                    y2: {
-                        type: 'linear',
-                        display: false, // Hidden axis for scale logic
-                        position: 'right',
-                        grid: { display: false },
-                        // Generally weekly deficit is 0 to 7000. 
-                        // We hide it so it doesn't clutter, but it scales independently.
-                    },
-                    x: {
-                        grid: { display: false }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { grid: { color: '#333' }, ticks: { color: '#888' } },
+                        x: { grid: { display: false }, ticks: { color: '#888' } }
                     }
                 }
-            }
-        });
-    }
+            });
+        }
 
-</script>
+        // --- MEDS (GLP-1) ---
+
+        function logMeds() {
+            const date = document.getElementById('glp-date').value;
+            if(!date) return;
+            appData.glp1.push({ date: date });
+            appData.glp1.sort((a,b) => new Date(b.date) - new Date(a.date)); // Descending
+            saveData();
+            loadMeds();
+        }
+
+        function loadMeds() {
+            const list = document.getElementById('meds-list');
+            list.innerHTML = '';
+            
+            if(appData.glp1.length > 0) {
+                const last = new Date(appData.glp1[0].date);
+                const next = new Date(last);
+                next.setDate(last.getDate() + 7);
+                
+                const today = new Date();
+                const diffTime = next - today;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                document.getElementById('days-left').innerText = diffDays > 0 ? `${diffDays} Days` : "DUE NOW";
+                document.getElementById('days-left').className = diffDays > 0 ? "text-4xl font-bold text-lime" : "text-4xl font-bold text-danger animate-pulse";
+                document.getElementById('next-date').innerText = `Scheduled: ${next.toLocaleDateString()}`;
+
+                appData.glp1.forEach(m => {
+                    list.innerHTML += `<li><i class="fas fa-check text-lime mr-2"></i> ${m.date}</li>`;
+                });
+            } else {
+                document.getElementById('days-left').innerText = "--";
+            }
+        }
+
+        // --- PREDICTOR (LINEAR REGRESSION) ---
+
+        function calculatePrediction() {
+            const targetDateInput = document.getElementById('pred-date').value;
+            if(!targetDateInput || appData.weight.length < 2) return alert("Need at least 2 weight logs and a target date.");
+
+            // 1. Prepare Data: Convert dates to "Day numbers" (x) and Weight (y)
+            // Use last 14 entries
+            const data = appData.weight.slice(-14);
+            const startTimestamp = new Date(data[0].date).getTime();
+            
+            const points = data.map(d => {
+                const dayNum = (new Date(d.date).getTime() - startTimestamp) / (1000 * 3600 * 24);
+                return { x: dayNum, y: d.value };
+            });
+
+            // 2. Linear Regression Math
+            const n = points.length;
+            const sumX = points.reduce((acc, p) => acc + p.x, 0);
+            const sumY = points.reduce((acc, p) => acc + p.y, 0);
+            const sumXY = points.reduce((acc, p) => acc + (p.x * p.y), 0);
+            const sumXX = points.reduce((acc, p) => acc + (p.x * p.x), 0);
+
+            const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+            const intercept = (sumY - slope * sumX) / n;
+
+            // 3. Predict
+            const targetTimestamp = new Date(targetDateInput).getTime();
+            const targetDayNum = (targetTimestamp - startTimestamp) / (1000 * 3600 * 24);
+            const predictedWeight = (slope * targetDayNum) + intercept;
+
+            // 4. Display
+            document.getElementById('pred-result').classList.remove('hidden');
+            document.getElementById('pred-value').innerText = predictedWeight.toFixed(1) + " lbs";
+            document.getElementById('trend-rate').innerText = `${slope.toFixed(2)} lbs/day`;
+            
+            // Basic trend warning
+            if(slope > 0) document.getElementById('pred-value').classList.replace('text-neon', 'text-danger');
+            else document.getElementById('pred-value').classList.replace('text-danger', 'text-neon');
+        }
+
+        // --- UTILS ---
+        function exportData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "health_data_backup.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        // Start
+        init();
+
+    </script>
 </body>
 </html>
