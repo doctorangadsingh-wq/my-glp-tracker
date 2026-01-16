@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioMetric Pro | Health Tracker</title>
+    <title>Angad's GLP Journey</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -34,9 +34,9 @@
 <body class="h-screen flex flex-col overflow-hidden">
 
     <header class="p-4 bg-cardbg border-b border-gray-800 flex justify-between items-center">
-        <h1 class="text-xl font-bold tracking-wider text-neon"><i class="fas fa-heartbeat"></i> BioMetric<span class="text-white">Pro</span></h1>
+        <h1 class="text-xl font-bold tracking-wider text-neon"><i class="fas fa-dna"></i> Angad's <span class="text-white">GLP Journey</span></h1>
         <button onclick="exportData()" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded border border-gray-600">
-            <i class="fas fa-download"></i> Backup Data
+            <i class="fas fa-download"></i> Backup
         </button>
     </header>
 
@@ -63,9 +63,9 @@
 
     <script>
         // --- STATE MANAGEMENT ---
-        const STORE_KEY = 'health_tracker_v1';
+        const STORE_KEY = 'angad_glp_v2'; // Changed key to ensure fresh start with new units
         let appData = JSON.parse(localStorage.getItem(STORE_KEY)) || {
-            user: { height: '', heightUnit: 'cm', weightUnit: 'lbs' },
+            user: { height: '', heightUnit: 'ft', weightUnit: 'kg' },
             weight: [],
             calories: [],
             protein: [],
@@ -76,7 +76,7 @@
         // --- SAVE DATA ---
         function saveData() {
             localStorage.setItem(STORE_KEY, JSON.stringify(appData));
-            updateUI();
+            updateUI(); // Trigger UI refresh if needed
         }
 
         // --- VIEWS ---
@@ -89,13 +89,13 @@
                             <p class="text-2xl font-bold text-neon" id="bmi-display">--</p>
                         </div>
                         <div class="bg-cardbg p-4 rounded-lg shadow-lg border border-gray-800">
-                            <h3 class="text-gray-400 text-xs uppercase">Weight Change</h3>
+                            <h3 class="text-gray-400 text-xs uppercase">Total Change</h3>
                             <p class="text-2xl font-bold text-lime" id="weight-loss-display">--</p>
                         </div>
                     </div>
 
                     <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
-                        <h3 class="text-white font-bold mb-4">Weight History</h3>
+                        <h3 class="text-white font-bold mb-4">Weight History (kg)</h3>
                         <div class="chart-container"><canvas id="weightChart"></canvas></div>
                     </div>
                     <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
@@ -119,20 +119,20 @@
                         </div>
 
                         <div class="border-t border-gray-700 pt-4">
-                            <label class="block text-white mb-1">Weight (${appData.user.weightUnit || 'lbs'})</label>
-                            <input type="number" id="log-weight" placeholder="e.g. 180" class="w-full p-3 rounded mb-2">
+                            <label class="block text-white mb-1">Weight (kg)</label>
+                            <input type="number" step="0.1" id="log-weight" placeholder="e.g. 85.5" class="w-full p-3 rounded mb-2">
                             <button onclick="addEntry('weight')" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-2 rounded">Log Weight</button>
                         </div>
 
                         <div class="border-t border-gray-700 pt-4">
                             <label class="block text-white mb-1">Calories (kcal)</label>
-                            <input type="number" id="log-cals" placeholder="e.g. 2500" class="w-full p-3 rounded mb-2">
+                            <input type="number" id="log-cals" placeholder="e.g. 1800" class="w-full p-3 rounded mb-2">
                             <button onclick="addEntry('calories')" class="w-full bg-purple-600 hover:bg-purple-500 text-white p-2 rounded">Log Calories</button>
                         </div>
 
                         <div class="border-t border-gray-700 pt-4">
                             <label class="block text-white mb-1">Protein (g)</label>
-                            <input type="number" id="log-protein" placeholder="e.g. 150" class="w-full p-3 rounded mb-2">
+                            <input type="number" id="log-protein" placeholder="e.g. 140" class="w-full p-3 rounded mb-2">
                             <button onclick="addEntry('protein')" class="w-full bg-green-600 hover:bg-green-500 text-white p-2 rounded">Log Protein</button>
                         </div>
                     </div>
@@ -161,7 +161,7 @@
 
                     <div class="grid grid-cols-2 gap-4 mb-4">
                          <div>
-                            <label class="text-gray-400 text-sm">Weight</label>
+                            <label class="text-gray-400 text-sm">Weight (kg)</label>
                             <select id="gym-weight" class="w-full p-3 rounded mt-1">
                                 </select>
                         </div>
@@ -237,7 +237,7 @@
         function init() {
             // Check for first time setup (User Info)
             if(!appData.user.height) {
-                const h = prompt("Welcome! To start, enter your height (in cm):", "175");
+                const h = prompt("Welcome Angad! To start, enter your height in FEET (e.g. 5.9):", "5.9");
                 if(h) {
                     appData.user.height = h;
                     saveData();
@@ -247,7 +247,8 @@
             
             // Set default date inputs to today
             const today = new Date().toISOString().split('T')[0];
-            document.querySelectorAll('input[type="date"]').forEach(i => i.value = today);
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            if(dateInputs) dateInputs.forEach(i => i.value = today);
         }
 
         function switchView(viewName) {
@@ -257,9 +258,19 @@
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.nav-btn')[['dashboard','log','gym','meds','predict'].indexOf(viewName)].classList.add('active');
 
+            // Re-initialize logic for specific views
             if (viewName === 'dashboard') loadDashboard();
             if (viewName === 'gym') populateGymDropdowns();
             if (viewName === 'meds') loadMeds();
+
+            // Set default dates again for newly injected HTML
+            const today = new Date().toISOString().split('T')[0];
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            if(dateInputs) dateInputs.forEach(i => i.value = today);
+        }
+
+        function updateUI() {
+            // Placeholder for real-time reactivity if needed
         }
 
         // --- DATA LOGGING FUNCTIONS ---
@@ -292,11 +303,11 @@
         function populateGymDropdowns() {
             const select = document.getElementById('gym-weight');
             select.innerHTML = '';
-            // 10 to 200
-            for(let i=10; i<=200; i+=10) {
+            // KG steps (2.5kg to 100kg)
+            for(let i=2.5; i<=100; i+=2.5) {
                 const opt = document.createElement('option');
                 opt.value = i;
-                opt.innerText = i;
+                opt.innerText = i + " kg";
                 select.appendChild(opt);
             }
             updateGymInputs();
@@ -309,13 +320,13 @@
             
             // Logic for Barbell exercises
             if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
-                hint.innerText = "⚠️ Enter weight for ONE SIDE only. (App assumes 45lb Olympic Bar)";
+                hint.innerText = "⚠️ Enter weight for ONE SIDE (kg). (App assumes 20kg Bar)";
                 weightInput.disabled = false;
             } else if (['pushup', 'squat_bw'].includes(type)) {
                 hint.innerText = "Bodyweight exercise.";
                 weightInput.disabled = true;
             } else {
-                hint.innerText = "Enter total weight stack/dumbbell weight.";
+                hint.innerText = "Enter total weight stack/dumbbell weight (kg).";
                 weightInput.disabled = false;
             }
             loadGymHistory();
@@ -323,7 +334,7 @@
 
         function logExercise() {
             const type = document.getElementById('gym-select').value;
-            let weight = parseInt(document.getElementById('gym-weight').value);
+            let weight = parseFloat(document.getElementById('gym-weight').value);
             const sets = document.getElementById('gym-sets').value;
             const date = new Date().toISOString().split('T')[0];
 
@@ -331,16 +342,17 @@
 
             let displayWeight = weight;
             
-            // THE ONE SIDE FORMULA
+            // THE ONE SIDE FORMULA (KG)
+            // Weight x 2 + 20kg bar
             if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
-                displayWeight = (weight * 2) + 45; 
+                displayWeight = (weight * 2) + 20; 
             }
             if(['pushup', 'squat_bw'].includes(type)) displayWeight = 0;
 
             appData.exercises.unshift({
                 date: date,
                 type: type,
-                inputWeight: weight, // Stored just in case
+                inputWeight: weight, 
                 totalWeight: displayWeight,
                 sets: sets
             });
@@ -354,7 +366,7 @@
             list.innerHTML = '';
             appData.exercises.slice(0, 10).forEach(ex => {
                 let name = ex.type.replace('_', ' ').toUpperCase();
-                let wString = ex.totalWeight > 0 ? `${ex.totalWeight} lbs` : 'Bodyweight';
+                let wString = ex.totalWeight > 0 ? `${ex.totalWeight} kg` : 'Bodyweight';
                 list.innerHTML += `<li class="border-b border-gray-800 pb-2 flex justify-between">
                     <span>${name}</span>
                     <span class="text-neon">${ex.sets} sets @ ${wString}</span>
@@ -365,39 +377,43 @@
         // --- DASHBOARD CHARTS ---
 
         function loadDashboard() {
-            // BMI
+            // BMI Calculation
+            // BMI = kg / m^2
             if(appData.weight.length > 0) {
-                const lastW = appData.weight[appData.weight.length-1].value;
-                const hM = appData.user.height / 100;
-                const bmi = (lastW * 0.453592) / (hM * hM); // Assuming lbs input, convert to kg for formula
+                const lastW = appData.weight[appData.weight.length-1].value; // in kg
+                const hFeet = parseFloat(appData.user.height); // in feet
+                
+                // Convert Feet to Meters (1 ft = 0.3048 m)
+                const hM = hFeet * 0.3048;
+
+                const bmi = lastW / (hM * hM); 
                 document.getElementById('bmi-display').innerText = bmi.toFixed(1);
 
                 const firstW = appData.weight[0].value;
                 const diff = lastW - firstW;
                 const elem = document.getElementById('weight-loss-display');
-                elem.innerText = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' lbs';
+                elem.innerText = (diff > 0 ? '+' : '') + diff.toFixed(1) + ' kg';
                 elem.className = diff <= 0 ? 'text-2xl font-bold text-lime' : 'text-2xl font-bold text-danger';
             }
 
-            renderChart('weightChart', appData.weight, 'Weight', '#00E5FF');
+            renderChart('weightChart', appData.weight, 'Weight (kg)', '#00E5FF');
             renderChart('calChart', appData.calories, 'Calories', '#E040FB');
             renderChart('proteinChart', appData.protein, 'Protein', '#76FF03');
         }
 
         function renderChart(canvasId, dataArr, label, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-            // Get last 14 entries max for clean graph
-            const slice = dataArr.slice(-14);
+            const slice = dataArr.slice(-14); // Last 14 entries
             
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: slice.map(d => d.date.substring(5)), // Show MM-DD
+                    labels: slice.map(d => d.date.substring(5)), // MM-DD
                     datasets: [{
                         label: label,
                         data: slice.map(d => d.value),
                         borderColor: color,
-                        backgroundColor: color + '20', // transparent fill
+                        backgroundColor: color + '20',
                         tension: 0.3,
                         fill: true
                     }]
@@ -456,8 +472,6 @@
             const targetDateInput = document.getElementById('pred-date').value;
             if(!targetDateInput || appData.weight.length < 2) return alert("Need at least 2 weight logs and a target date.");
 
-            // 1. Prepare Data: Convert dates to "Day numbers" (x) and Weight (y)
-            // Use last 14 entries
             const data = appData.weight.slice(-14);
             const startTimestamp = new Date(data[0].date).getTime();
             
@@ -466,7 +480,6 @@
                 return { x: dayNum, y: d.value };
             });
 
-            // 2. Linear Regression Math
             const n = points.length;
             const sumX = points.reduce((acc, p) => acc + p.x, 0);
             const sumY = points.reduce((acc, p) => acc + p.y, 0);
@@ -476,17 +489,14 @@
             const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
             const intercept = (sumY - slope * sumX) / n;
 
-            // 3. Predict
             const targetTimestamp = new Date(targetDateInput).getTime();
             const targetDayNum = (targetTimestamp - startTimestamp) / (1000 * 3600 * 24);
             const predictedWeight = (slope * targetDayNum) + intercept;
 
-            // 4. Display
             document.getElementById('pred-result').classList.remove('hidden');
-            document.getElementById('pred-value').innerText = predictedWeight.toFixed(1) + " lbs";
-            document.getElementById('trend-rate').innerText = `${slope.toFixed(2)} lbs/day`;
+            document.getElementById('pred-value').innerText = predictedWeight.toFixed(1) + " kg";
+            document.getElementById('trend-rate').innerText = `${slope.toFixed(2)} kg/day`;
             
-            // Basic trend warning
             if(slope > 0) document.getElementById('pred-value').classList.replace('text-neon', 'text-danger');
             else document.getElementById('pred-value').classList.replace('text-danger', 'text-neon');
         }
@@ -496,7 +506,7 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "health_data_backup.json");
+            downloadAnchorNode.setAttribute("download", "angad_glp_data.json");
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
