@@ -29,11 +29,16 @@
         .nav-btn.active { border-bottom: 2px solid #76FF03; color: #76FF03; }
         input, select { background-color: #2C2C2C; border: 1px solid #333; color: white; }
         .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        /* Scrollbar hiding for cleaner look */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #121212; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
     </style>
 </head>
 <body class="h-screen flex flex-col overflow-hidden">
 
-    <header class="p-4 bg-cardbg border-b border-gray-800 flex justify-between items-center">
+    <header class="p-4 bg-cardbg border-b border-gray-800 flex justify-between items-center z-10">
         <h1 class="text-xl font-bold tracking-wider text-neon"><i class="fas fa-dna"></i> Angad's <span class="text-white">GLP Journey</span></h1>
         <button onclick="exportData()" class="text-xs bg-gray-800 hover:bg-gray-700 px-3 py-1 rounded border border-gray-600">
             <i class="fas fa-download"></i> Backup
@@ -63,7 +68,7 @@
 
     <script>
         // --- STATE MANAGEMENT ---
-        const STORE_KEY = 'angad_glp_v2'; // Changed key to ensure fresh start with new units
+        const STORE_KEY = 'angad_glp_v3'; // Incremented key for fresh structure
         let appData = JSON.parse(localStorage.getItem(STORE_KEY)) || {
             user: { height: '', heightUnit: 'ft', weightUnit: 'kg' },
             weight: [],
@@ -76,7 +81,7 @@
         // --- SAVE DATA ---
         function saveData() {
             localStorage.setItem(STORE_KEY, JSON.stringify(appData));
-            updateUI(); // Trigger UI refresh if needed
+            updateUI(); 
         }
 
         // --- VIEWS ---
@@ -143,6 +148,9 @@
                     <h2 class="text-xl text-lime mb-4"><i class="fas fa-dumbbell"></i> Workout Logger</h2>
                     
                     <div class="mb-4">
+                        <label class="text-gray-400 text-sm">Date</label>
+                        <input type="date" id="gym-date" class="w-full p-3 rounded mt-1 mb-2">
+
                         <label class="text-gray-400 text-sm">Select Exercise</label>
                         <select id="gym-select" class="w-full p-3 rounded mt-1" onchange="updateGymInputs()">
                             <option value="pushup">Push-Ups (Bodyweight)</option>
@@ -162,6 +170,7 @@
                     <div class="grid grid-cols-2 gap-4 mb-4">
                          <div>
                             <label class="text-gray-400 text-sm">Weight (kg)</label>
+                            <input type="number" id="gym-weight-manual" class="w-full p-3 rounded mt-1 hidden" placeholder="Manual Input">
                             <select id="gym-weight" class="w-full p-3 rounded mt-1">
                                 </select>
                         </div>
@@ -174,9 +183,9 @@
                     <button onclick="logExercise()" class="w-full bg-lime text-black font-bold p-3 rounded hover:bg-green-400">LOG WORKOUT</button>
                 </div>
 
-                <div class="bg-cardbg p-4 rounded-lg border border-gray-800">
-                    <h3 class="text-white font-bold mb-4">Recent Workouts</h3>
-                    <ul id="gym-history" class="text-sm text-gray-300 space-y-3"></ul>
+                <div class="">
+                    <h3 class="text-white font-bold mb-4 text-xl border-b border-gray-700 pb-2">Workout Diary</h3>
+                    <div id="gym-diary" class="space-y-6"></div>
                 </div>
             `,
             meds: () => `
@@ -246,6 +255,10 @@
             switchView('dashboard');
             
             // Set default date inputs to today
+            setTodayDates();
+        }
+
+        function setTodayDates() {
             const today = new Date().toISOString().split('T')[0];
             const dateInputs = document.querySelectorAll('input[type="date"]');
             if(dateInputs) dateInputs.forEach(i => i.value = today);
@@ -254,23 +267,18 @@
         function switchView(viewName) {
             document.getElementById('main-content').innerHTML = views[viewName]();
             
-            // Update active nav button
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.nav-btn')[['dashboard','log','gym','meds','predict'].indexOf(viewName)].classList.add('active');
 
-            // Re-initialize logic for specific views
             if (viewName === 'dashboard') loadDashboard();
             if (viewName === 'gym') populateGymDropdowns();
             if (viewName === 'meds') loadMeds();
 
-            // Set default dates again for newly injected HTML
-            const today = new Date().toISOString().split('T')[0];
-            const dateInputs = document.querySelectorAll('input[type="date"]');
-            if(dateInputs) dateInputs.forEach(i => i.value = today);
+            setTodayDates();
         }
 
         function updateUI() {
-            // Placeholder for real-time reactivity if needed
+            // Placeholder for reactivity
         }
 
         // --- DATA LOGGING FUNCTIONS ---
@@ -282,7 +290,6 @@
 
             if (!date || isNaN(val)) return alert("Please enter valid data");
 
-            // Add or overwrite entry for that date
             const existingIndex = appData[type].findIndex(e => e.date === date);
             if (existingIndex > -1) {
                 appData[type][existingIndex].value = val;
@@ -290,7 +297,6 @@
                 appData[type].push({ date: date, value: val });
             }
             
-            // Sort by date
             appData[type].sort((a,b) => new Date(a.date) - new Date(b.date));
             
             saveData();
@@ -311,6 +317,7 @@
                 select.appendChild(opt);
             }
             updateGymInputs();
+            loadGymDiary();
         }
 
         function updateGymInputs() {
@@ -318,74 +325,128 @@
             const hint = document.getElementById('gym-hint');
             const weightInput = document.getElementById('gym-weight');
             
-            // Logic for Barbell exercises
+            // Reset state
+            weightInput.disabled = false;
+
+            // Logic
             if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
                 hint.innerText = "⚠️ Enter weight for ONE SIDE (kg). (App assumes 20kg Bar)";
-                weightInput.disabled = false;
             } else if (['pushup', 'squat_bw'].includes(type)) {
                 hint.innerText = "Bodyweight exercise.";
+                
+                // Force 0 value for Bodyweight logic
+                weightInput.innerHTML = '<option value="0">0 kg</option>';
+                weightInput.value = 0;
                 weightInput.disabled = true;
+
             } else {
                 hint.innerText = "Enter total weight stack/dumbbell weight (kg).";
-                weightInput.disabled = false;
+                // Re-populate if it was cleared by BW logic
+                if(weightInput.options.length < 2) populateGymDropdowns(); 
             }
-            loadGymHistory();
         }
 
         function logExercise() {
             const type = document.getElementById('gym-select').value;
             let weight = parseFloat(document.getElementById('gym-weight').value);
             const sets = document.getElementById('gym-sets').value;
-            const date = new Date().toISOString().split('T')[0];
+            const date = document.getElementById('gym-date').value; // Use the selected date
 
             if(!sets) return alert("Enter sets");
+            if(!date) return alert("Enter date");
 
             let displayWeight = weight;
-            
-            // THE ONE SIDE FORMULA (KG)
-            // Weight x 2 + 20kg bar
+            let displayString = "";
+
+            // LOGIC HANDLER
             if(['deadlift', 'bench', 'shoulder', 'squat_bar'].includes(type)) {
                 displayWeight = (weight * 2) + 20; 
+                displayString = `${displayWeight} kg`;
+            } else if(['pushup', 'squat_bw'].includes(type)) {
+                displayWeight = 0;
+                displayString = "0 kg";
+            } else {
+                displayString = `${weight} kg`;
             }
-            if(['pushup', 'squat_bw'].includes(type)) displayWeight = 0;
 
             appData.exercises.unshift({
                 date: date,
                 type: type,
                 inputWeight: weight, 
                 totalWeight: displayWeight,
+                displayString: displayString,
                 sets: sets
             });
+            
+            // Sort exercises by date (newest first)
+            appData.exercises.sort((a,b) => new Date(b.date) - new Date(a.date));
+
             saveData();
-            loadGymHistory();
+            loadGymDiary();
         }
 
-        function loadGymHistory() {
-            const list = document.getElementById('gym-history');
-            if(!list) return;
-            list.innerHTML = '';
-            appData.exercises.slice(0, 10).forEach(ex => {
-                let name = ex.type.replace('_', ' ').toUpperCase();
-                let wString = ex.totalWeight > 0 ? `${ex.totalWeight} kg` : 'Bodyweight';
-                list.innerHTML += `<li class="border-b border-gray-800 pb-2 flex justify-between">
-                    <span>${name}</span>
-                    <span class="text-neon">${ex.sets} sets @ ${wString}</span>
-                </li>`;
+        function loadGymDiary() {
+            const container = document.getElementById('gym-diary');
+            if(!container) return;
+            container.innerHTML = '';
+
+            if(appData.exercises.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center italic">No workouts logged yet.</p>';
+                return;
+            }
+
+            // Group by Date
+            const grouped = {};
+            appData.exercises.forEach(ex => {
+                if(!grouped[ex.date]) grouped[ex.date] = [];
+                grouped[ex.date].push(ex);
+            });
+
+            // Get Sorted Dates
+            const sortedDates = Object.keys(grouped).sort((a,b) => new Date(b) - new Date(a));
+
+            // Render Groups
+            sortedDates.forEach(dateStr => {
+                const dateObj = new Date(dateStr);
+                const prettyDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'bg-cardbg rounded-lg border border-gray-800 overflow-hidden';
+                
+                let html = `<div class="bg-gray-800 px-4 py-2 flex justify-between items-center">
+                                <span class="text-lime font-bold text-sm">${prettyDate}</span>
+                                <span class="text-xs text-gray-500">${grouped[dateStr].length} Exercises</span>
+                            </div>`;
+                
+                html += '<ul class="divide-y divide-gray-700">';
+                
+                grouped[dateStr].forEach(ex => {
+                    let name = ex.type.replace('_', ' ').toUpperCase();
+                    // Fallback for older data that didn't have displayString
+                    let weightStr = ex.displayString || (ex.totalWeight > 0 ? ex.totalWeight + " kg" : "0 kg");
+
+                    html += `<li class="px-4 py-3 flex justify-between items-center hover:bg-white/5">
+                                <span class="text-sm text-gray-300">${name}</span>
+                                <div class="text-right">
+                                    <span class="block text-neon font-bold text-sm">${ex.sets} Sets</span>
+                                    <span class="block text-xs text-gray-500">${weightStr}</span>
+                                </div>
+                             </li>`;
+                });
+                
+                html += '</ul>';
+                groupDiv.innerHTML = html;
+                container.appendChild(groupDiv);
             });
         }
 
         // --- DASHBOARD CHARTS ---
 
         function loadDashboard() {
-            // BMI Calculation
-            // BMI = kg / m^2
             if(appData.weight.length > 0) {
-                const lastW = appData.weight[appData.weight.length-1].value; // in kg
-                const hFeet = parseFloat(appData.user.height); // in feet
-                
-                // Convert Feet to Meters (1 ft = 0.3048 m)
+                const lastW = appData.weight[appData.weight.length-1].value; 
+                const hFeet = parseFloat(appData.user.height); 
                 const hM = hFeet * 0.3048;
-
                 const bmi = lastW / (hM * hM); 
                 document.getElementById('bmi-display').innerText = bmi.toFixed(1);
 
@@ -403,12 +464,12 @@
 
         function renderChart(canvasId, dataArr, label, color) {
             const ctx = document.getElementById(canvasId).getContext('2d');
-            const slice = dataArr.slice(-14); // Last 14 entries
+            const slice = dataArr.slice(-14);
             
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: slice.map(d => d.date.substring(5)), // MM-DD
+                    labels: slice.map(d => d.date.substring(5)), 
                     datasets: [{
                         label: label,
                         data: slice.map(d => d.value),
@@ -436,7 +497,7 @@
             const date = document.getElementById('glp-date').value;
             if(!date) return;
             appData.glp1.push({ date: date });
-            appData.glp1.sort((a,b) => new Date(b.date) - new Date(a.date)); // Descending
+            appData.glp1.sort((a,b) => new Date(b.date) - new Date(a.date));
             saveData();
             loadMeds();
         }
@@ -466,7 +527,7 @@
             }
         }
 
-        // --- PREDICTOR (LINEAR REGRESSION) ---
+        // --- PREDICTOR ---
 
         function calculatePrediction() {
             const targetDateInput = document.getElementById('pred-date').value;
